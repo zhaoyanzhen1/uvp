@@ -7,4 +7,6 @@ public class CacheConstant {
     public static final String VULN_SOURCE_CONFIG_CACHE = "VulnSourceConfigCache";
 
     public static final String DECRYPT_CACHE = "DecryptCache";
+
+    public static final String UVP_SEARCH_CACHE = "UvpSearchCache";
 }

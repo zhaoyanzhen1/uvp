@@ -3,6 +3,7 @@ package org.opensourceway.uvp.enums;
 import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -24,12 +25,26 @@ public enum OsvSchemaVersion {
         return version;
     }
 
+    public static OsvSchemaVersion findByVersion(String version) {
+        if (StringUtils.isEmpty(version)) {
+            return null;
+        }
+
+        for (OsvSchemaVersion osvSchemaVersion : OsvSchemaVersion.values()) {
+            if (StringUtils.equals(osvSchemaVersion.version, version)) {
+                return osvSchemaVersion;
+            }
+        }
+
+        return null;
+    }
+
     @Converter(autoApply = true)
     public static class OsvSchemaVersionConverter implements AttributeConverter<OsvSchemaVersion, String> {
 
         @Override
         public String convertToDatabaseColumn(OsvSchemaVersion osvSchemaVersion) {
-            return Objects.nonNull(osvSchemaVersion) ? osvSchemaVersion.name() : null;
+            return Objects.nonNull(osvSchemaVersion) ? osvSchemaVersion.getVersion() : null;
         }
 
         @Override
@@ -37,7 +52,7 @@ public enum OsvSchemaVersion {
             if (Objects.isNull(dbData)) {
                 return null;
             }
-            return OsvSchemaVersion.valueOf(dbData);
+            return OsvSchemaVersion.findByVersion(dbData);
         }
     }
 }

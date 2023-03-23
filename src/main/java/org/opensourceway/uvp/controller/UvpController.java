@@ -18,8 +18,11 @@ import org.opensourceway.uvp.constant.UvpConstant;
 import org.opensourceway.uvp.enums.ErrorCode;
 import org.opensourceway.uvp.exception.InvalidPurlException;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
+import org.opensourceway.uvp.pojo.request.SearchRequest;
 import org.opensourceway.uvp.pojo.response.Error;
 import org.opensourceway.uvp.pojo.response.PackageVulns;
+import org.opensourceway.uvp.pojo.response.SearchResp;
+import org.opensourceway.uvp.pojo.response.VulnDetailResp;
 import org.opensourceway.uvp.service.UvpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -181,5 +186,114 @@ public class UvpController {
 
         logger.info("Batch import successfully");
         return ResponseEntity.status(HttpStatus.OK).body("Batch import successfully");
+    }
+
+    @Operation(summary = "Search vulnerabilities by a given keyword")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Search request that consists of `keyword`, `page`, `size`",
+            content = @Content(
+                    mediaType = APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = SearchRequest.class),
+                    examples = @ExampleObject(value = Example.SEARCH_REQUEST_EXAMPLE)))
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = HttpStatusCode.OK,
+                    description = "A JSON list of summaries of the matched vulnerabilities, " +
+                            "and a flag indicates whether the current page is the last",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(schema = @Schema(implementation = SearchResp.class)),
+                            examples = @ExampleObject(value = Example.SEARCH_RESP_EXAMPLE))),
+            @ApiResponse(
+                    responseCode = HttpStatusCode.BAD_REQUEST,
+                    description = "Illegal request",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Error.class),
+                            examples = @ExampleObject(value = Example.ERROR_ILLEGAL_ARGUMENT_EXAMPLE))),
+            @ApiResponse(
+                    responseCode = HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    description = "There was an internal error while process the request",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Error.class),
+                            examples = @ExampleObject(value = Example.ERROR_INTERNAL_EXAMPLE)))
+    })
+    @PostMapping("/search")
+    public @ResponseBody ResponseEntity<?> search(@RequestBody(required = false) SearchRequest request) {
+        logger.info("Search vulns by: <{}>", request);
+        if (Objects.isNull(request)) {
+            request = new SearchRequest();
+        }
+
+        SearchResp resp;
+        try {
+            resp = uvpService.search(request);
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Error(ErrorCode.ILLEGAL_ARGUMENT, e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unknown error occurs when search vulns by: <{}>", request, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Error(ErrorCode.UNKNOWN, "Unknown error"));
+        }
+
+        logger.info("Search vulns by: <{}> successfully, get <{}> vulns",
+                request, Objects.isNull(resp) ? 0 : resp.getVulns().size());
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
+    }
+
+    @Operation(summary = "Query details for a given vulnerability")
+    @Parameter(
+            name = "vulnId",
+            in = ParameterIn.PATH,
+            description = "Vulnerability ID, such as CVE ID, GHSA ID",
+            required = true,
+            example = Example.VULN_ID_EXAMPLE)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = HttpStatusCode.OK,
+                    description = "A JSON object of details for a vulnerability",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = VulnDetailResp.class),
+                            examples = @ExampleObject(value = Example.VULN_DETAIL_EXAMPLE))),
+            @ApiResponse(
+                    responseCode = HttpStatusCode.BAD_REQUEST,
+                    description = "There is no details for the requested vulnerability ID",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Error.class),
+                            examples = @ExampleObject(value = Example.INVALID_VULN_DETAIL_EXAMPLE))),
+            @ApiResponse(
+                    responseCode = HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    description = "There was an internal error while process the request",
+                    content = @Content(
+                            mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Error.class),
+                            examples = @ExampleObject(value = Example.ERROR_INTERNAL_EXAMPLE)))
+    })
+    @GetMapping("/vulnerability/{vulnId}")
+    public @ResponseBody ResponseEntity<?> queryVulnDetail(@PathVariable String vulnId) {
+        logger.info("Query details for vulnerability: <{}>", vulnId);
+
+        VulnDetailResp resp;
+        try {
+            resp = uvpService.queryVulnDetail(vulnId);
+        } catch (Exception e) {
+            logger.error("Unknown error occurs when query detail for vulnerability: <{}>", vulnId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Error(ErrorCode.UNKNOWN, "Unknown error"));
+        }
+
+        if (Objects.isNull(resp)) {
+            logger.error("Vulnerability with id <{}> doesn't exist", vulnId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Error(ErrorCode.INVALID_VULN_ID, "Invalid vulnerability ID: <%s>".formatted(vulnId)));
+        }
+
+        logger.info("Query details successfully for vulnerability: <{}>", vulnId);
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
     }
 }

@@ -14,6 +14,10 @@ public enum ErrorCode {
     INVALID_PURL(2),
 
     QUERY_SIZE_EXCEEDS(3),
+
+    ILLEGAL_ARGUMENT(4),
+
+    INVALID_VULN_ID(5),
     ;
 
     private final Integer code;

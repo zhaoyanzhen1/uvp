@@ -5,6 +5,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +41,8 @@ public enum EventType {
     private static final Map<String, EventType> valueToEnum = Arrays.stream(EventType.values())
             .collect(Collectors.toMap(EventType::getValue, Function.identity()));
 
+    private static final List<EventType> fixedType = List.of(FIXED, LIMIT);
+
     EventType(String value) {
         this.value = value;
     }
@@ -47,6 +50,10 @@ public enum EventType {
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    public static boolean isFixed(EventType type) {
+        return fixedType.contains(type);
     }
 
     @Converter(autoApply = true)

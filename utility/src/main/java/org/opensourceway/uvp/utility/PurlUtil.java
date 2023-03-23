@@ -101,4 +101,13 @@ public class PurlUtil {
             throw new InvalidPurlException("Invalid purls: %s".formatted(invalidPurls));
         }
     }
+
+    public static boolean isValidPurl(String purl) {
+        try {
+            PurlUtil.validate(purl);
+            return true;
+        } catch (InvalidPurlException e) {
+            return false;
+        }
+    }
 }

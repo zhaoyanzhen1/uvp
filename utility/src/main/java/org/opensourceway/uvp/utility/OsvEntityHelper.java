@@ -1,5 +1,7 @@
 package org.opensourceway.uvp.utility;
 
+import org.apache.commons.lang3.StringUtils;
+import org.opensourceway.uvp.constant.OsvConstant;
 import org.opensourceway.uvp.dao.VulnerabilityRepository;
 import org.opensourceway.uvp.entity.AffectedEvent;
 import org.opensourceway.uvp.entity.AffectedPackage;
@@ -9,6 +11,7 @@ import org.opensourceway.uvp.entity.Reference;
 import org.opensourceway.uvp.entity.Severity;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.CvssSeverity;
+import org.opensourceway.uvp.enums.EventType;
 import org.opensourceway.uvp.enums.VulnSource;
 import org.opensourceway.uvp.pojo.osv.OsvAffected;
 import org.opensourceway.uvp.pojo.osv.OsvCredit;
@@ -18,15 +21,20 @@ import org.opensourceway.uvp.pojo.osv.OsvRange;
 import org.opensourceway.uvp.pojo.osv.OsvReference;
 import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
+import org.opensourceway.uvp.pojo.response.SearchResp;
+import org.opensourceway.uvp.pojo.response.VulnDetailResp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -353,6 +361,131 @@ public class OsvEntityHelper {
         entity.setValue(old.getValue());
         entity.setRange(affectedRange);
         return entity;
+    }
+
+    public SearchResp.SearchRespObj toSearchObj(Vulnerability vuln) {
+        if (Objects.isNull(vuln)) {
+            return null;
+        }
+
+        var obj = new SearchResp.SearchRespObj();
+
+        obj.setVulnId(vuln.getVulnId());
+        obj.setSummary(StringUtils.isBlank(vuln.getSummary()) ? vuln.getDetail().substring(0, 100) + "..."
+                : vuln.getSummary());
+        obj.setScore(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getScore());
+        obj.setSeverity(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getSeverity());
+        obj.setPublished(Objects.isNull(vuln.getPublished()) ? null : vuln.getPublished().toInstant().toString());
+        obj.setModified(Objects.isNull(vuln.getModified()) ? null : vuln.getModified().toInstant().toString());
+        obj.setAffectedPackages(getAffectedPackages(vuln));
+        obj.setFixed(isFixed(vuln));
+
+        return obj;
+    }
+
+    private List<String> getAffectedPackages(Vulnerability vuln) {
+        return ObjectUtils.isEmpty(vuln.getAffectedPackages()) ? null : vuln.getAffectedPackages().stream()
+                .map(it -> StringUtils.isBlank(it.getPurl()) ? it.getName() : it.getPurl()).distinct().toList();
+    }
+
+    private Boolean isFixed(Vulnerability vuln) {
+        if (ObjectUtils.isEmpty(vuln.getAffectedPackages())) {
+            return null;
+        }
+
+        return vuln.getAffectedPackages()
+                .stream()
+                // If any fixed or limit version is found in any affected package, treat it as fixed.
+                .anyMatch(it -> it.getRanges()
+                        .stream()
+                        .map(AffectedRange::getEvents)
+                        .flatMap(List::stream)
+                        .anyMatch(event -> EventType.isFixed(event.getType())));
+    }
+
+    public VulnDetailResp toDetail(Vulnerability vuln) {
+        if (Objects.isNull(vuln)) {
+            return null;
+        }
+
+        var resp = new VulnDetailResp();
+
+        resp.setAliases(vuln.getAliases());
+        resp.setPublished(Objects.isNull(vuln.getPublished()) ? null : vuln.getPublished().toInstant().toString());
+        resp.setModified(Objects.isNull(vuln.getModified()) ? null : vuln.getModified().toInstant().toString());
+        resp.setDetail(vuln.getDetail());
+        resp.setScore(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getScore());
+        resp.setSeverity(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getSeverity());
+        resp.setVector(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getVector());
+        resp.setReferences(vuln.getReferences().stream().map(Reference::getUrl).toList());
+        resp.setAffectedPackages(vuln.getAffectedPackages().stream().map(this::getAffectedPackage).toList());
+
+        return resp;
+    }
+
+    private VulnDetailResp.AffectedPackage getAffectedPackage(AffectedPackage pkg) {
+        var obj = new VulnDetailResp.AffectedPackage();
+
+        obj.setPkg(StringUtils.isEmpty(pkg.getPurl())
+                ? MessageFormat.format("%s/%s", pkg.getEcosystem().getEcosystem(), pkg.getName())
+                : pkg.getPurl());
+        obj.setAffectedRanges(ObjectUtils.isEmpty(pkg.getRanges()) ? null
+                : pkg.getRanges().stream().map(this::getAffectedRange)
+                .filter(Objects::nonNull).flatMap(List::stream)
+                .sorted((Comparator.comparing(VulnDetailResp.AffectedPackage.AffectedRange::getFixed))).toList());
+        obj.setAffectedVersions(pkg.getVersions());
+
+        return obj;
+    }
+
+    private List<VulnDetailResp.AffectedPackage.AffectedRange> getAffectedRange(AffectedRange range) {
+        if (Objects.isNull(range) || ObjectUtils.isEmpty(range.getEvents())) {
+            return null;
+        }
+
+        var result = new ArrayList<VulnDetailResp.AffectedPackage.AffectedRange>();
+        var introducedStack = new Stack<String>();
+        range.getEvents().forEach(event -> {
+            if (Objects.isNull(event)) {
+                return;
+            }
+
+            if (EventType.INTRODUCED.equals(event.getType())) {
+                introducedStack.push(event.getValue());
+                return;
+            }
+
+            if (EventType.isFixed(event.getType())) {
+                if (introducedStack.empty() || OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
+                    introducedStack.pop();
+                    result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                            VulnDetailResp.AffectedPackage.AffectedRange.FIXED_ONLY.formatted(event.getValue()),
+                            event.getValue()));
+                    return;
+                }
+                result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                        VulnDetailResp.AffectedPackage.AffectedRange.INTRO_AND_FIXED
+                                .formatted(introducedStack.pop(), event.getValue()), event.getValue()));
+                return;
+            }
+
+            if (EventType.LAST_AFFECTED.equals(event.getType())) {
+                if (introducedStack.empty() || OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
+                    introducedStack.pop();
+                    result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                            VulnDetailResp.AffectedPackage.AffectedRange.LAST_AFFECTED_ONLY.formatted(event.getValue()),
+                            null));
+                    return;
+                }
+                result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                        VulnDetailResp.AffectedPackage.AffectedRange.INTRO_AND_LAST_AFFECTED
+                                .formatted(introducedStack.pop(), event.getValue()), null));
+            }
+        });
+
+        introducedStack.forEach(event -> result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                VulnDetailResp.AffectedPackage.AffectedRange.INTRO_ONLY, null)));
+        return result;
     }
 
     private Vulnerability update(Vulnerability existVuln, Vulnerability newVuln) {
