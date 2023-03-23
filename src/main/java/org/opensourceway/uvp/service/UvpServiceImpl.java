@@ -39,8 +39,7 @@ public class UvpServiceImpl implements UvpService {
     public List<OsvVulnerability> query(String purl) {
         PurlUtil.validate(purl);
 
-        var result = vulnLocalService.query(purl);
-        return vulnAggregator.aggregate(result);
+        return vulnLocalService.query(purl);
     }
 
     @Override
@@ -48,8 +47,7 @@ public class UvpServiceImpl implements UvpService {
         purls = purls.stream().distinct().toList();
         PurlUtil.validate(purls);
 
-        var result = vulnLocalService.queryBatch(purls);
-        return vulnAggregator.batchAggregate(result);
+        return vulnLocalService.queryBatch(purls);
     }
 
     @Override

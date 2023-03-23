@@ -3,10 +3,10 @@ package org.opensourceway.uvp.schedule.job;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.opensourceway.uvp.entity.VulnSourceConfig;
-import org.opensourceway.uvp.enums.VulnSource;
+import org.opensourceway.uvp.entity.QuartzJobConfig;
+import org.opensourceway.uvp.enums.QuartzJobEnum;
 import org.opensourceway.uvp.schedule.constant.QuartzConstant;
-import org.opensourceway.uvp.utility.VulnSourceConfigUtil;
+import org.opensourceway.uvp.utility.QuartzJobConfigUtil;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
@@ -24,38 +24,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Proactively capture changes of {@link VulnSourceConfig#getImportCron()}.
- * If importCron changes, then reschedule corresponding import job.
+ * Proactively capture changes of {@link QuartzJobConfig#getCron()}.
+ * If cron changes, then reschedule corresponding job.
  */
-public class CaptureImportCronJob extends QuartzJobBean {
+public class CaptureCronJob extends QuartzJobBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(CaptureImportCronJob.class);
+    private static final Logger logger = LoggerFactory.getLogger(CaptureCronJob.class);
 
-    private static final Map<VulnSource, String> sourceToCron = new HashMap<>();
+    private static final Map<QuartzJobEnum, String> jobToCron = new HashMap<>();
 
     @Autowired
-    private VulnSourceConfigUtil vulnSourceConfigUtil;
+    private QuartzJobConfigUtil quartzJobConfigUtil;
 
     @Autowired
     private ApplicationContext context;
 
     /**
-     * Record the import crons when this job was initialized for the first time.
+     * Record the crons when this job was initialized for the first time.
      */
     @PostConstruct
-    private void recordImportCron() {
-        Arrays.stream(VulnSource.values()).forEach(source ->
-                sourceToCron.putIfAbsent(source, vulnSourceConfigUtil.getImportCron(source)));
+    private void recordCron() {
+        Arrays.stream(QuartzJobEnum.values()).forEach(job ->
+                jobToCron.putIfAbsent(job, quartzJobConfigUtil.getJobCron(job)));
     }
 
     protected void executeInternal(@NotNull JobExecutionContext quartzJobContext) {
-        Arrays.stream(VulnSource.values()).forEach(this::captureChange);
+        Arrays.stream(QuartzJobEnum.values()).forEach(this::captureChange);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void captureChange(VulnSource source) {
-        var oldCron = sourceToCron.get(source);
-        var newCron = vulnSourceConfigUtil.getImportCron(source);
+    private void captureChange(QuartzJobEnum job) {
+        var oldCron = jobToCron.get(job);
+        var newCron = quartzJobConfigUtil.getJobCron(job);
 
         if (StringUtils.equals(oldCron, newCron)) {
             return;
@@ -64,9 +64,9 @@ public class CaptureImportCronJob extends QuartzJobBean {
         Scheduler scheduler = (Scheduler) context.getBean(QuartzConstant.QUARTZ_SCHEDULER);
         Trigger oldTrigger;
         try {
-            oldTrigger = scheduler.getTrigger(TriggerKey.triggerKey(QuartzConstant.SOURCE_TO_TRIGGER.get(source)));
+            oldTrigger = scheduler.getTrigger(TriggerKey.triggerKey(QuartzConstant.JOB_TO_TRIGGER.get(job)));
         } catch (Exception e) {
-            // If no trigger is found, it means the source is not configured in QuartzJobConfig.
+            // If no trigger is found, it means the job is not configured in QuartzJobConfigure.
             return;
         }
 
@@ -76,11 +76,11 @@ public class CaptureImportCronJob extends QuartzJobBean {
             scheduler.rescheduleJob(oldTrigger.getKey(), trigger);
         } catch (Exception e) {
             // If failed to change import cron, former trigger will be kept.
-            logger.warn("Failed to change import cron for <{}> from <{}> to <{}>", source, oldCron, newCron);
+            logger.warn("Failed to change cron for <{}> from <{}> to <{}>", job, oldCron, newCron);
             return;
         }
 
-        sourceToCron.put(source, newCron);
-        logger.info("Import cron for <{}> is changed from <{}> to <{}>", source, oldCron, newCron);
+        jobToCron.put(job, newCron);
+        logger.info("Import cron for <{}> is changed from <{}> to <{}>", job, oldCron, newCron);
     }
 }

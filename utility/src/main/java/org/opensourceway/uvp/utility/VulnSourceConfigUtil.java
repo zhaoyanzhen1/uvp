@@ -17,18 +17,6 @@ public class VulnSourceConfigUtil {
         return repository.findBySource(source).map(VulnSourceConfig::getImportEnabled).orElse(false);
     }
 
-    public String getImportCron(VulnSource source) {
-        return repository.findBySource(source).map(VulnSourceConfig::getImportCron).orElse(null);
-    }
-
-    public Boolean subscribeEnabled(VulnSource source) {
-        return repository.findBySource(source).map(VulnSourceConfig::getSubscribeEnabled).orElse(false);
-    }
-
-    public Boolean queryEnabled(VulnSource source) {
-        return repository.findBySource(source).map(VulnSourceConfig::getQueryEnabled).orElse(false);
-    }
-
     public Map<String, String> getConfig(VulnSource source) {
         return repository.findBySource(source).map(VulnSourceConfig::getConfig).orElse(Map.of());
     }

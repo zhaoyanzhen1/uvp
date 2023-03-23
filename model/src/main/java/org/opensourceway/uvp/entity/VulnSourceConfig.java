@@ -33,24 +33,6 @@ public class VulnSourceConfig {
     private Boolean importEnabled;
 
     /**
-     * Cron-expression of the job that imports vulnerabilities from the source.
-     */
-    @Column(columnDefinition = "TEXT")
-    private String importCron;
-
-    /**
-     * Whether subscribing vulnerabilities from the source if it publishes vulnerabilities.
-     * By default, open source databases are enabled, and commercial or private databases are disabled.
-     */
-    private Boolean subscribeEnabled;
-
-    /**
-     * Whether querying vulnerabilities from local database that are imported from the source.
-     * By default, open source databases are enabled, and commercial or private databases are disabled.
-     */
-    private Boolean queryEnabled;
-
-    /**
      * Configurations about a source, such as token, API server/endpoint.
      * <p>1. For open source databases, public information, such as API server/endpoint, is configured in
      * vuln-resources.properties, and private information, such as password and token, is stored here.</p>
@@ -76,30 +58,6 @@ public class VulnSourceConfig {
 
     public void setImportEnabled(Boolean importEnabled) {
         this.importEnabled = importEnabled;
-    }
-
-    public String getImportCron() {
-        return importCron;
-    }
-
-    public void setImportCron(String importCron) {
-        this.importCron = importCron;
-    }
-
-    public Boolean getSubscribeEnabled() {
-        return subscribeEnabled;
-    }
-
-    public void setSubscribeEnabled(Boolean subscribeEnabled) {
-        this.subscribeEnabled = subscribeEnabled;
-    }
-
-    public Boolean getQueryEnabled() {
-        return queryEnabled;
-    }
-
-    public void setQueryEnabled(Boolean queryEnabled) {
-        this.queryEnabled = queryEnabled;
     }
 
     public Map<String, String> getConfig() {

@@ -18,7 +18,6 @@ import org.opensourceway.uvp.pojo.osv.OsvRange;
 import org.opensourceway.uvp.pojo.osv.OsvReference;
 import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
-import org.opensourceway.uvp.pojo.vo.OsvVulnWithSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -221,7 +220,7 @@ public class OsvEntityHelper {
         return vo;
     }
 
-    private OsvVulnerability toVo(Vulnerability vuln) {
+    public OsvVulnerability toVo(Vulnerability vuln) {
         var vo = new OsvVulnerability();
         vo.setSchemaVersion(vuln.getSchemaVersion());
         vo.setId(vuln.getVulnId());
@@ -240,8 +239,120 @@ public class OsvEntityHelper {
         return vo;
     }
 
-    public OsvVulnWithSource toVulnWithSource(Vulnerability vuln) {
-        return new OsvVulnWithSource(toVo(vuln), vuln.getSource());
+    public Vulnerability copyEntity(Vulnerability old, VulnSource source) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var vuln = new Vulnerability();
+        vuln.setSource(source);
+        vuln.setSchemaVersion(old.getSchemaVersion());
+        vuln.setVulnId(old.getVulnId());
+        vuln.setAliases(old.getAliases());
+        vuln.setRelated(old.getRelated());
+        vuln.setModified(old.getModified());
+        vuln.setPublished(old.getPublished());
+        vuln.setWithdrawn(old.getWithdrawn());
+        vuln.setSummary(old.getSummary());
+        vuln.setDetail(old.getDetail());
+        vuln.setDatabaseSpecific(old.getDatabaseSpecific());
+        vuln.setSeverities(Objects.isNull(old.getSeverities()) ? new ArrayList<>()
+                : old.getSeverities().stream()
+                .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
+        vuln.setReferences(Objects.isNull(old.getReferences()) ? new ArrayList<>()
+                : old.getReferences().stream()
+                .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
+        vuln.setCredits(Objects.isNull(old.getCredits()) ? new ArrayList<>()
+                : old.getCredits().stream()
+                .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
+        vuln.setAffectedPackages(Objects.isNull(old.getAffectedPackages()) ? new ArrayList<>()
+                : old.getAffectedPackages().stream()
+                .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
+        return vuln;
+    }
+
+    private Severity copyEntity(Severity old, Vulnerability vuln) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new Severity();
+        entity.setScoringSystem(old.getScoringSystem());
+        entity.setScore(old.getScore());
+        entity.setVector(old.getVector());
+        entity.setSeverity(old.getSeverity());
+        entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private Reference copyEntity(Reference old, Vulnerability vuln) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new Reference();
+        entity.setType(old.getType());
+        entity.setUrl(old.getUrl());
+        entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private Credit copyEntity(Credit old, Vulnerability vuln) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new Credit();
+        entity.setName(old.getName());
+        entity.setContacts(old.getContacts());
+        entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private AffectedPackage copyEntity(AffectedPackage old, Vulnerability vuln) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new AffectedPackage();
+        entity.setEcosystem(old.getEcosystem());
+        entity.setName(old.getName());
+        entity.setPurl(old.getPurl());
+        entity.setVersions(old.getVersions());
+        entity.setEcosystemSpecific(old.getEcosystemSpecific());
+        entity.setDatabaseSpecific(old.getDatabaseSpecific());
+        entity.setRanges(Objects.isNull(old.getRanges()) ? new ArrayList<>()
+                : old.getRanges().stream()
+                .map(it -> copyEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
+        entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private AffectedRange copyEntity(AffectedRange old, AffectedPackage affectedPackage) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new AffectedRange();
+        entity.setType(old.getType());
+        entity.setRepo(old.getRepo());
+        entity.setEvents(Objects.isNull(old.getEvents()) ? new ArrayList<>()
+                : old.getEvents().stream()
+                .map(it -> copyEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
+        entity.setAffectedPackage(affectedPackage);
+        return entity;
+    }
+
+    private AffectedEvent copyEntity(AffectedEvent old, AffectedRange affectedRange) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new AffectedEvent();
+        entity.setType(old.getType());
+        entity.setValue(old.getValue());
+        entity.setRange(affectedRange);
+        return entity;
     }
 
     private Vulnerability update(Vulnerability existVuln, Vulnerability newVuln) {

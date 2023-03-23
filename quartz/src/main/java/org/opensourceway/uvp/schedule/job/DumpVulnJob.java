@@ -2,9 +2,6 @@ package org.opensourceway.uvp.schedule.job;
 
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.batch.job.BatchJobConfig;
-import org.opensourceway.uvp.enums.VulnSource;
-import org.opensourceway.uvp.schedule.constant.QuartzConstant;
-import org.opensourceway.uvp.utility.VulnSourceConfigUtil;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,23 +14,14 @@ public class DumpVulnJob extends QuartzJobBean {
     @Autowired
     private BatchJobConfig batchJobConfig;
 
-    @Autowired
-    private VulnSourceConfigUtil vulnSourceConfigUtil;
-
     protected void executeInternal(@NotNull JobExecutionContext quartzJobContext) {
-        VulnSource source = (VulnSource) quartzJobContext.getMergedJobDataMap().get(QuartzConstant.VULN_SOURCE_KEY);
-        logger.info("Launch DumpVulnJob for <{}>", source);
-
-        if (!vulnSourceConfigUtil.importEnabled(source)) {
-            logger.info("DumpVulnJob for <{}> is disabled!", source);
-            return;
-        }
+        logger.info("Launch DumpVulnJob.");
 
         try {
-            batchJobConfig.launchDumpJob(source);
+            batchJobConfig.launchDumpJob();
         } catch (Exception e) {
-            logger.error("Exception occurs when execute DumpVulnJob for <{}>", source, e);
+            logger.error("Exception occurs when execute DumpVulnJob", e);
         }
-        logger.info("Finish DumpVulnJob for <{}>.", source);
+        logger.info("Finish DumpVulnJob.");
     }
 }

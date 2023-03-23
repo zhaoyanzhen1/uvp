@@ -1,7 +1,7 @@
 package org.opensourceway.uvp.service;
 
-import org.opensourceway.uvp.pojo.vo.OsvVulnWithSource;
-import org.opensourceway.uvp.pojo.vo.PackageVulnsWithSource;
+import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
+import org.opensourceway.uvp.pojo.response.PackageVulns;
 
 import java.util.List;
 
@@ -13,16 +13,15 @@ public interface VulnLocalService {
      * Query vulnerabilities that affect the given package from local vuln databases.
      *
      * @param purl Package URL.
-     * @return A list of osv-schema vulnerabilities with vuln source information with vuln source information.
+     * @return A list of osv-schema vulnerabilities.
      */
-    List<OsvVulnWithSource> query(String purl);
+    List<OsvVulnerability> query(String purl);
 
     /**
      * Batch query vulnerabilities that affect the given packages from local vuln databases.
      *
      * @param purls A list of Package URLs.
-     * @return A list whose element consists of each given package and
-     * its affected vulnerabilities with vuln source information.
+     * @return A list whose element consists of each given package and its affected vulnerabilities.
      */
-    List<PackageVulnsWithSource> queryBatch(List<String> purls);
+    List<PackageVulns> queryBatch(List<String> purls);
 }

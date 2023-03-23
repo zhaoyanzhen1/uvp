@@ -3,18 +3,26 @@ package org.opensourceway.uvp.enums;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public enum VulnSource {
-    OSV(0),
+    // Aggregated Vulnerabilities from open source databases.
+    AGGREGATED(null, VulnSourceCategory.AGGREGATED),
 
-    NVD(1),
+    // Aggregated Vulnerabilities from open source and private databases.
+    AGGREGATED_WITH_PRIVATE(null, VulnSourceCategory.AGGREGATED),
 
-    OSS_INDEX(2),
+    OSV(0, VulnSourceCategory.PUBLIC),
 
-    VTOPIA(2),
+    NVD(1, VulnSourceCategory.PUBLIC),
 
-    PRISM_7_CAI(2),
+    OSS_INDEX(2, VulnSourceCategory.PUBLIC),
+
+    VTOPIA(2, VulnSourceCategory.PRIVATE),
+
+    PRISM_7_CAI(2, VulnSourceCategory.PRIVATE),
     ;
 
     /**
@@ -23,16 +31,41 @@ public enum VulnSource {
      */
     private final Integer priority;
 
-    VulnSource(Integer priority) {
+    /**
+     * The category of vuln source.
+     *
+     * @see VulnSourceCategory
+     */
+    private final VulnSourceCategory category;
+
+    VulnSource(Integer priority, VulnSourceCategory category) {
         this.priority = priority;
+        this.category = category;
     }
 
     public Integer getPriority() {
         return priority;
     }
 
+    public VulnSourceCategory getCategory() {
+        return category;
+    }
+
     public boolean hasHigherPriority(VulnSource other) {
         return this.priority < other.priority;
+    }
+
+    public static List<VulnSource> getPublicSource() {
+        return Arrays.stream(VulnSource.values())
+                .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory()))
+                .toList();
+    }
+
+    public static List<VulnSource> getPublicAndPrivateSource() {
+        return Arrays.stream(VulnSource.values())
+                .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory())
+                        || VulnSourceCategory.PRIVATE.equals(it.getCategory()))
+                .toList();
     }
 
     @Converter(autoApply = true)
@@ -50,5 +83,13 @@ public enum VulnSource {
             }
             return VulnSource.valueOf(dbData);
         }
+    }
+
+    public enum VulnSourceCategory {
+        AGGREGATED,
+
+        PUBLIC,
+
+        PRIVATE
     }
 }

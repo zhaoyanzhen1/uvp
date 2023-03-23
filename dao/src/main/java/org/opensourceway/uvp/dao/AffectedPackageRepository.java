@@ -1,6 +1,7 @@
 package org.opensourceway.uvp.dao;
 
 import org.opensourceway.uvp.entity.AffectedPackage;
+import org.opensourceway.uvp.enums.VulnSource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,12 +14,11 @@ public interface AffectedPackageRepository extends JpaRepository<AffectedPackage
             SELECT ap.*
             FROM vulnerability v
                 JOIN affected_package ap ON v.id = ap.vuln_id
-                JOIN vuln_source_config vsc ON v.source = vsc.source
             WHERE
                 v.withdrawn IS NULL
-                AND vsc.query_enabled is true
                 AND ap.purl = :purl
+                AND v.source = :#{#source?.name()}
             """,
             nativeQuery = true)
-    List<AffectedPackage> findByPurl(String purl);
+    List<AffectedPackage> findByPurlAndSource(String purl, VulnSource source);
 }
