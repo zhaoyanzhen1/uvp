@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -57,7 +58,7 @@ public class OsvReader implements ItemReader<String> {
         var url = "%s/%s".formatted(this.osvBucketBaseUrl, ECOSYSTEMS_TXT);
         InputStream obj;
         try {
-            obj = webUtil.getFileContext(url).asInputStream(true);
+            obj = webUtil.getFileContext(url, Duration.ofSeconds(120)).asInputStream(true);
         } catch (WebClientResponseException.NotFound e) {
             logger.warn("{} does not exist.", ECOSYSTEMS_TXT);
             return;

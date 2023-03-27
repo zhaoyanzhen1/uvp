@@ -20,6 +20,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class DumpCpePurlMappingStep implements Tasklet {
 
         Map<Pair<String, String>, Cpes> cpeMap = new HashMap<>();
         Map<Pair<String, String>, Purls> purlMap = new HashMap<>();
-        try (ZipInputStream is = new ZipInputStream(webUtil.getFileContext(purl2cpeDumpUrl)
+        try (ZipInputStream is = new ZipInputStream(webUtil.getFileContext(purl2cpeDumpUrl, Duration.ofSeconds(120))
                 .asInputStream(true))) {
             ZipEntry entry;
             while ((entry = is.getNextEntry()) != null) {

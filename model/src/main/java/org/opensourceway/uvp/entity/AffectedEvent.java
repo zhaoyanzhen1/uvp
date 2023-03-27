@@ -17,6 +17,9 @@ import org.opensourceway.uvp.enums.EventType;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Describes an affecting event.
+ */
 @Entity
 @Table(indexes = {
         @Index(name = "event_uk", columnList = "range_id, type, value", unique = true),
@@ -27,12 +30,25 @@ public class AffectedEvent {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * The event type.
+     * @see EventType
+     */
     @Convert(converter = EventType.EventTypeConverter.class)
     @Column(columnDefinition = "TEXT", nullable = false)
     private EventType type;
 
+    /**
+     * The event value, such as a version.
+     */
     @Column(columnDefinition = "TEXT", nullable = false)
     private String value;
+
+    /**
+     * The order of the event in the range.
+     */
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private Integer eventOrder;
 
     /**
      * Range that an event belongs to.
@@ -64,6 +80,14 @@ public class AffectedEvent {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public Integer getEventOrder() {
+        return eventOrder;
+    }
+
+    public void setEventOrder(Integer eventOrder) {
+        this.eventOrder = eventOrder;
     }
 
     public AffectedRange getRange() {

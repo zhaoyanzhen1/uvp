@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.io.ByteArrayInputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +54,8 @@ public class OsvProcessor implements ItemProcessor<String, List<Vulnerability>> 
             var url = "%s/%s/%s".formatted(this.osvBucketBaseUrl,
                     URLEncoder.encode(ecosystem, StandardCharsets.UTF_8).replace("+", "%20"),
                     ALL_ZIP);
-            try (ZipInputStream is = new ZipInputStream(webUtil.getFileContext(url).asInputStream(true))) {
+            try (ZipInputStream is = new ZipInputStream(webUtil.getFileContext(url, Duration.ofSeconds(120))
+                    .asInputStream(true))) {
                 var mapper = new ObjectMapper();
                 while (is.getNextEntry() != null) {
                     Optional.ofNullable(osvEntityHelper.toVuln(VulnSource.OSV,

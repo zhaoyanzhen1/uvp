@@ -6,6 +6,7 @@ import org.opensourceway.uvp.dao.VulnerabilityRepository;
 import org.opensourceway.uvp.entity.AffectedEvent;
 import org.opensourceway.uvp.entity.AffectedPackage;
 import org.opensourceway.uvp.entity.AffectedRange;
+import org.opensourceway.uvp.entity.Alias;
 import org.opensourceway.uvp.entity.Credit;
 import org.opensourceway.uvp.entity.Reference;
 import org.opensourceway.uvp.entity.Severity;
@@ -23,6 +24,8 @@ import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
 import org.opensourceway.uvp.pojo.response.SearchResp;
 import org.opensourceway.uvp.pojo.response.VulnDetailResp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -40,6 +43,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class OsvEntityHelper {
+
+    private static final Logger logger = LoggerFactory.getLogger(OsvEntityHelper.class);
 
     @Autowired
     private VulnerabilityRepository vulnerabilityRepository;
@@ -61,7 +66,9 @@ public class OsvEntityHelper {
 
         vuln.setSchemaVersion(osvVuln.getSchemaVersion());
         vuln.setVulnId(osvVuln.getId());
-        vuln.setAliases(osvVuln.getAliases());
+        vuln.setAliases(Objects.isNull(osvVuln.getAliases()) ? new ArrayList<>()
+                : osvVuln.getAliases().stream()
+                .map(it -> toEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
         vuln.setRelated(osvVuln.getRelated());
         vuln.setModified(Objects.isNull(osvVuln.getModified()) ? null
                 : Timestamp.from(Instant.parse(osvVuln.getModified())));
@@ -137,7 +144,7 @@ public class OsvEntityHelper {
         entity.setEcosystem(osvAffected.getPkg().getEcosystem());
         entity.setName(osvAffected.getPkg().getName());
         entity.setPurl(osvAffected.getPkg().getPurl());
-        entity.setVersions(osvAffected.getVersions());
+        entity.setVersions(Objects.isNull(osvAffected.getVersions()) ? new ArrayList<>() : osvAffected.getVersions());
         entity.setEcosystemSpecific(osvAffected.getEcosystemSpecific());
         entity.setDatabaseSpecific(osvAffected.getDatabaseSpecific());
         entity.setRanges(Objects.isNull(osvAffected.getRanges()) ? new ArrayList<>()
@@ -157,12 +164,13 @@ public class OsvEntityHelper {
         entity.setRepo(osvRange.getRepo());
         entity.setEvents(Objects.isNull(osvRange.getEvents()) ? new ArrayList<>()
                 : osvRange.getEvents().stream()
-                .map(it -> toEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
+                .map(it -> toEntity(it, entity, osvRange.getEvents().indexOf(it)))
+                .filter(Objects::nonNull).collect(Collectors.toList()));
         entity.setAffectedPackage(affectedPackage);
         return entity;
     }
 
-    private AffectedEvent toEntity(OsvEvent osvEvent, AffectedRange affectedRange) {
+    private AffectedEvent toEntity(OsvEvent osvEvent, AffectedRange affectedRange, Integer order) {
         if (Objects.isNull(osvEvent)) {
             return null;
         }
@@ -174,7 +182,19 @@ public class OsvEntityHelper {
         }
         entity.setType(osvEvent.keySet().stream().toList().get(0));
         entity.setValue(osvEvent.values().stream().toList().get(0));
+        entity.setEventOrder(order);
         entity.setRange(affectedRange);
+        return entity;
+    }
+
+    private Alias toEntity(String alias, Vulnerability vuln) {
+        if (Objects.isNull(alias)) {
+            return null;
+        }
+
+        var entity = new Alias();
+        entity.setAlias(alias);
+        entity.setVulnerability(vuln);
         return entity;
     }
 
@@ -235,7 +255,7 @@ public class OsvEntityHelper {
         vo.setModified(Objects.isNull(vuln.getModified()) ? null : vuln.getModified().toInstant().toString());
         vo.setPublished(Objects.isNull(vuln.getPublished()) ? null : vuln.getPublished().toInstant().toString());
         vo.setWithdrawn(Objects.isNull(vuln.getWithdrawn()) ? null : vuln.getWithdrawn().toInstant().toString());
-        vo.setAliases(vuln.getAliases());
+        vo.setAliases(vuln.getAliases().stream().map(Alias::getAlias).toList());
         vo.setRelated(vuln.getRelated());
         vo.setSummary(vuln.getSummary());
         vo.setDetails(vuln.getDetail());
@@ -256,7 +276,6 @@ public class OsvEntityHelper {
         vuln.setSource(source);
         vuln.setSchemaVersion(old.getSchemaVersion());
         vuln.setVulnId(old.getVulnId());
-        vuln.setAliases(old.getAliases());
         vuln.setRelated(old.getRelated());
         vuln.setModified(old.getModified());
         vuln.setPublished(old.getPublished());
@@ -264,6 +283,9 @@ public class OsvEntityHelper {
         vuln.setSummary(old.getSummary());
         vuln.setDetail(old.getDetail());
         vuln.setDatabaseSpecific(old.getDatabaseSpecific());
+        vuln.setAliases(Objects.isNull(old.getAliases()) ? new ArrayList<>()
+                : old.getAliases().stream()
+                .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
         vuln.setSeverities(Objects.isNull(old.getSeverities()) ? new ArrayList<>()
                 : old.getSeverities().stream()
                 .map(it -> copyEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
@@ -346,7 +368,9 @@ public class OsvEntityHelper {
         entity.setRepo(old.getRepo());
         entity.setEvents(Objects.isNull(old.getEvents()) ? new ArrayList<>()
                 : old.getEvents().stream()
-                .map(it -> copyEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
+                .map(it -> copyEntity(it, entity)).filter(Objects::nonNull)
+                .sorted(Comparator.comparing(AffectedEvent::getEventOrder))
+                .collect(Collectors.toList()));
         entity.setAffectedPackage(affectedPackage);
         return entity;
     }
@@ -359,7 +383,19 @@ public class OsvEntityHelper {
         var entity = new AffectedEvent();
         entity.setType(old.getType());
         entity.setValue(old.getValue());
+        entity.setEventOrder(old.getEventOrder());
         entity.setRange(affectedRange);
+        return entity;
+    }
+
+    private Alias copyEntity(Alias old, Vulnerability vuln) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new Alias();
+        entity.setAlias(old.getAlias());
+        entity.setVulnerability(vuln);
         return entity;
     }
 
@@ -410,7 +446,7 @@ public class OsvEntityHelper {
 
         var resp = new VulnDetailResp();
 
-        resp.setAliases(vuln.getAliases());
+        resp.setAliases(vuln.getAliases().stream().map(Alias::getAlias).toList());
         resp.setPublished(Objects.isNull(vuln.getPublished()) ? null : vuln.getPublished().toInstant().toString());
         resp.setModified(Objects.isNull(vuln.getModified()) ? null : vuln.getModified().toInstant().toString());
         resp.setDetail(vuln.getDetail());
@@ -431,8 +467,10 @@ public class OsvEntityHelper {
                 : pkg.getPurl());
         obj.setAffectedRanges(ObjectUtils.isEmpty(pkg.getRanges()) ? null
                 : pkg.getRanges().stream().map(this::getAffectedRange)
-                .filter(Objects::nonNull).flatMap(List::stream)
-                .sorted((Comparator.comparing(VulnDetailResp.AffectedPackage.AffectedRange::getFixed))).toList());
+                .filter(Objects::nonNull).flatMap(List::stream).filter(Objects::nonNull)
+                .sorted(Comparator.comparing(VulnDetailResp.AffectedPackage.AffectedRange::getFixed,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList());
         obj.setAffectedVersions(pkg.getVersions());
 
         return obj;
@@ -450,13 +488,19 @@ public class OsvEntityHelper {
                 return;
             }
 
-            if (EventType.INTRODUCED.equals(event.getType())) {
+            if (EventType.INTRODUCED.equals(event.getType()) && Objects.nonNull(event.getValue())) {
                 introducedStack.push(event.getValue());
                 return;
             }
 
             if (EventType.isFixed(event.getType())) {
-                if (introducedStack.empty() || OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
+                if (introducedStack.empty()) {
+                    result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                            VulnDetailResp.AffectedPackage.AffectedRange.FIXED_ONLY.formatted(event.getValue()),
+                            event.getValue()));
+                    return;
+                }
+                if (OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
                     introducedStack.pop();
                     result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
                             VulnDetailResp.AffectedPackage.AffectedRange.FIXED_ONLY.formatted(event.getValue()),
@@ -470,7 +514,13 @@ public class OsvEntityHelper {
             }
 
             if (EventType.LAST_AFFECTED.equals(event.getType())) {
-                if (introducedStack.empty() || OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
+                if (introducedStack.empty()) {
+                    result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
+                            VulnDetailResp.AffectedPackage.AffectedRange.LAST_AFFECTED_ONLY.formatted(event.getValue()),
+                            null));
+                    return;
+                }
+                if (OsvConstant.DEFAULT_INTRODUCED_VERSION.equals(introducedStack.peek())) {
                     introducedStack.pop();
                     result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
                             VulnDetailResp.AffectedPackage.AffectedRange.LAST_AFFECTED_ONLY.formatted(event.getValue()),
@@ -484,7 +534,7 @@ public class OsvEntityHelper {
         });
 
         introducedStack.forEach(event -> result.add(new VulnDetailResp.AffectedPackage.AffectedRange(
-                VulnDetailResp.AffectedPackage.AffectedRange.INTRO_ONLY, null)));
+                VulnDetailResp.AffectedPackage.AffectedRange.INTRO_ONLY.formatted(event), null)));
         return result;
     }
 
@@ -494,11 +544,10 @@ public class OsvEntityHelper {
         }
 
         if (Objects.equals(existVuln, newVuln)) {
-            return existVuln;
+            return null;
         }
 
         existVuln.setSchemaVersion(newVuln.getSchemaVersion());
-        existVuln.setAliases(newVuln.getAliases());
         existVuln.setRelated(newVuln.getRelated());
         existVuln.setModified(newVuln.getModified());
         existVuln.setPublished(newVuln.getPublished());
@@ -506,6 +555,10 @@ public class OsvEntityHelper {
         existVuln.setSummary(newVuln.getSummary());
         existVuln.setDetail(newVuln.getDetail());
         existVuln.setDatabaseSpecific(newVuln.getDatabaseSpecific());
+
+        existVuln.getAliases().stream().filter(it -> !newVuln.getAliases().contains(it)).toList()
+                .forEach(existVuln::removeAlias);
+        newVuln.getAliases().forEach(existVuln::addAlias);
 
         existVuln.getSeverities().stream().filter(it -> !newVuln.getSeverities().contains(it)).toList()
                 .forEach(existVuln::removeSeverity);
@@ -536,10 +589,12 @@ public class OsvEntityHelper {
                 .findBySourceAndVulnIds(vulnSource, vulns.stream().map(Vulnerability::getVulnId).toList())
                 .stream()
                 .collect(Collectors.toMap(Vulnerability::getVulnId, Function.identity()));
-        var newVulns = vulns.stream().map(it -> update(existVulns.get(it.getVulnId()), it)).collect(Collectors.toList());
-        newVulns.removeAll(existVulns.values());
+        var newVulns = vulns.stream().map(it -> update(existVulns.get(it.getVulnId()), it))
+                .filter(Objects::nonNull)
+                .toList();
         if (!ObjectUtils.isEmpty(newVulns)) {
             vulnerabilityRepository.saveAll(newVulns);
+            logger.info("Upsert <{}> vulns", newVulns.size());
         }
     }
 }

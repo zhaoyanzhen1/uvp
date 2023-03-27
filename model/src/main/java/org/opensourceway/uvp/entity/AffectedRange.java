@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.annotations.Type;
 import org.opensourceway.uvp.enums.VersionType;
 
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -136,11 +138,11 @@ public class AffectedRange {
         return type == that.type &&
                 Objects.equals(repo, that.repo) &&
                 Objects.equals(databaseSpecific, that.databaseSpecific) &&
-                Objects.deepEquals(events.toArray(), that.events.toArray());
+                CollectionUtils.isEqualCollection(events, that.events);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, repo, databaseSpecific, events);
+        return Objects.hash(type, repo, databaseSpecific, Set.copyOf(events));
     }
 }

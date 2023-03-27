@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.annotations.Type;
 import org.opensourceway.uvp.enums.Ecosystem;
 
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,9 +34,9 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "vuln_eco_name_idx", columnList = "vuln_id, ecosystem, name"),
-        @Index(name = "vuln_purl_idx", columnList = "vuln_id, purl"),
-        @Index(name = "affected_pkg_vuln_id_idx", columnList = "vuln_id")
+        @Index(name = "ap_vuln_purl_idx", columnList = "vuln_id, purl"),
+        @Index(name = "ap_vuln_id_idx", columnList = "vuln_id"),
+        @Index(name = "ap_purl_idx", columnList = "purl")
 })
 public class AffectedPackage {
     @Id
@@ -66,7 +68,7 @@ public class AffectedPackage {
      */
     @Column(columnDefinition = "TEXT[]")
     @Type(ListArrayType.class)
-    private List<String> versions;
+    private List<String> versions = new ArrayList<>();
 
     /**
      * JSON object that holds additional information about a vulnerability as defined by the ecosystem for which the
@@ -185,14 +187,15 @@ public class AffectedPackage {
         return ecosystem == that.ecosystem &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(purl, that.purl) &&
-                Objects.equals(versions, that.versions) &&
+                CollectionUtils.isEqualCollection(versions, that.versions) &&
                 Objects.equals(ecosystemSpecific, that.ecosystemSpecific) &&
                 Objects.equals(databaseSpecific, that.databaseSpecific) &&
-                Objects.deepEquals(ranges.toArray(), that.ranges.toArray());
+                CollectionUtils.isEqualCollection(ranges, that.ranges);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ecosystem, name, purl, versions, ecosystemSpecific, databaseSpecific, ranges);
+        return Objects.hash(ecosystem, name, purl, Set.copyOf(versions), ecosystemSpecific, databaseSpecific,
+                Set.copyOf(ranges));
     }
 }

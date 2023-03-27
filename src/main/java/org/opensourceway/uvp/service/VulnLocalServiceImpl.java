@@ -118,6 +118,6 @@ public class VulnLocalServiceImpl implements VulnLocalService {
     @Override
     public Vulnerability queryVulnDetail(String vulnId) {
         logger.info("Query details for vulnerability: <{}>", vulnId);
-        return vulnerabilityRepository.findBySourceAndVulnIds(VulnSource.AGGREGATED, vulnId);
+        return vulnerabilityRepository.findBySourceAndVulnId(VulnSource.AGGREGATED, vulnId);
     }
 }

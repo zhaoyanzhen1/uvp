@@ -51,7 +51,7 @@ public class QuartzJobConfigure {
     }
 
     @Bean
-    public Trigger dumpFromOsvJobTrigger() {
+    public Trigger dumpVulnJobTrigger() {
         return TriggerBuilder.newTrigger()
                 .forJob(dumpVulnJobDetail())
                 .withIdentity(QuartzConstant.DUMP_VULN_JOB_TRIGGER_ID)

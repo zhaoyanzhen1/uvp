@@ -26,10 +26,11 @@ public class VulnAggregatorImpl implements VulnAggregator {
                     value.getSource().hasHigherPriority(oldValue.getSource()) ? value : oldValue);
 
             Optional.ofNullable(vuln.getAliases())
-                    .ifPresent(aliases -> aliases.forEach(alias -> vulnIdToVuln.merge(alias, vuln, (oldValue, value) ->
+                    .ifPresent(aliases -> aliases.forEach(alias -> vulnIdToVuln.merge(
+                            alias.getAlias(), vuln, (oldValue, value) ->
                             value.getSource().hasHigherPriority(oldValue.getSource()) ? value : oldValue)));
         });
-        var result = vulnIdToVuln.values().stream().distinct().toList();
+        var result = vulnIdToVuln.values().stream().toList();
 
         logger.info("Get <{}> vulns after aggregating", result.size());
         return result;
