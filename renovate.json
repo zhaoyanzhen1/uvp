@@ -2,5 +2,24 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base"
+  ],
+  "label": ["dependencies"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "groupName": "major"
+    },
+    {
+      "matchLanguages": ["java"],
+      "groupName": "java"
+    },
+    {
+      "matchPaths": [".github/workflows/**"],
+      "groupName": "workflows"
+    },
+    {
+      "matchPaths": ["gradle/**"],
+      "groupName": "gradle"
+    }
   ]
 }
