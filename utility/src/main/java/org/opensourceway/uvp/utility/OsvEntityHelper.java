@@ -407,8 +407,7 @@ public class OsvEntityHelper {
         var obj = new SearchResp.SearchRespObj();
 
         obj.setVulnId(vuln.getVulnId());
-        obj.setSummary(StringUtils.isBlank(vuln.getSummary()) ? vuln.getDetail().substring(0, 100) + "..."
-                : vuln.getSummary());
+        obj.setSummary(getSummary(vuln));
         obj.setScore(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getScore());
         obj.setSeverity(ObjectUtils.isEmpty(vuln.getSeverities()) ? null : vuln.getSeverities().get(0).getSeverity());
         obj.setPublished(Objects.isNull(vuln.getPublished()) ? null : vuln.getPublished().toInstant().toString());
@@ -417,6 +416,18 @@ public class OsvEntityHelper {
         obj.setFixed(isFixed(vuln));
 
         return obj;
+    }
+
+    private String getSummary(Vulnerability vuln) {
+        if (StringUtils.isNotBlank(vuln.getSummary())) {
+            return vuln.getSummary();
+        }
+
+        if (StringUtils.isNotBlank(vuln.getDetail())) {
+            return vuln.getDetail().length() > 100 ? vuln.getDetail().substring(0, 100) + "..." : vuln.getDetail();
+        }
+
+        return "";
     }
 
     private List<String> getAffectedPackages(Vulnerability vuln) {
