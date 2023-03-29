@@ -1,5 +1,8 @@
 package org.opensourceway.uvp.pojo.request;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import org.opensourceway.uvp.constant.UvpConstant;
 import org.springframework.data.domain.AbstractPageRequest;
 
 import java.util.Objects;
@@ -13,12 +16,14 @@ public class SearchRequest {
     /**
      * @See {@link AbstractPageRequest#getPageNumber()}
      */
+    @Min(0)
     private Integer page = 0;
 
     /**
      * @See {@link AbstractPageRequest#getPageSize()}
      */
-    private Integer size = 10;
+    @Size(min = 1, max = UvpConstant.SEARCH_PAGE_SIZE_LIMIT)
+    private Integer size = UvpConstant.SEARCH_PAGE_SIZE_DEFAULT;
 
     public String getKeyword() {
         return keyword;

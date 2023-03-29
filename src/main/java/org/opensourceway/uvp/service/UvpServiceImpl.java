@@ -1,6 +1,7 @@
 package org.opensourceway.uvp.service;
 
 import org.opensourceway.uvp.constant.CacheConstant;
+import org.opensourceway.uvp.constant.UvpConstant;
 import org.opensourceway.uvp.dao.PackageRepository;
 import org.opensourceway.uvp.entity.Package;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
@@ -74,6 +75,11 @@ public class UvpServiceImpl implements UvpService {
 
         if (request.getSize() < 1) {
             throw new IllegalArgumentException("Page size must not be less than one");
+        }
+
+        if (request.getSize() > UvpConstant.SEARCH_PAGE_SIZE_LIMIT) {
+            throw new IllegalArgumentException("Page size must not be greater than %s".formatted(
+                    UvpConstant.SEARCH_PAGE_SIZE_LIMIT));
         }
 
         // Get one more tuple to check if last page is reached.
