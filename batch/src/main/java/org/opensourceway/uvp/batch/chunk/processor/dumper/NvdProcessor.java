@@ -9,7 +9,6 @@ import org.opensourceway.uvp.enums.EventType;
 import org.opensourceway.uvp.enums.OsvSchemaVersion;
 import org.opensourceway.uvp.enums.ReferenceType;
 import org.opensourceway.uvp.enums.ScoringSystem;
-import org.opensourceway.uvp.enums.VersionType;
 import org.opensourceway.uvp.enums.VulnSource;
 import org.opensourceway.uvp.pojo.nvd.Configuration;
 import org.opensourceway.uvp.pojo.nvd.Cpe;
@@ -48,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>, StepExecutionListener {
 
@@ -132,6 +132,11 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(OsvAffected::getPkg, Collectors.toList()))
+                .values()
+                .stream()
+                .map(this::mergeAffected)
+                .flatMap(List::stream)
                 .toList();
     }
 
@@ -152,7 +157,7 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
             var osvAffected = new OsvAffected();
 
             osvAffected.setPkg(PurlUtil.purlToOsvPackage(purl));
-            osvAffected.setRanges(List.of(toOsvRange(cpe)));
+            osvAffected.setRanges(List.of(toOsvRange(cpe, purl)));
             osvAffected.setVersions(getVersionsFromCpe(cpe));
 
             return osvAffected;
@@ -190,9 +195,9 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
         }
     }
 
-    private OsvRange toOsvRange(Cpe cpe) {
+    private OsvRange toOsvRange(Cpe cpe, String purl) {
         var osvRange = new OsvRange();
-        osvRange.setType(VersionType.ECOSYSTEM);
+        osvRange.setType(PurlUtil.purlToOsvPackage(purl).getEcosystem().getVersionType());
 
         List<OsvEvent> osvEvents = new ArrayList<>();
         if (StringUtils.isNotBlank(cpe.versionStartIncluding())) {
@@ -216,6 +221,33 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
         osvRange.setEvents(osvEvents);
 
         return osvRange;
+    }
+
+    /**
+     * Merge versions of the same affected packages.
+     * Leave affected packages with range events alone.
+     *
+     * @param osvAffectedList Unmerged list of OsvAffected
+     * @return A list of merged OsvAffected.
+     */
+    private List<OsvAffected> mergeAffected(List<OsvAffected> osvAffectedList) {
+        var result = new ArrayList<OsvAffected>();
+
+        var osvAffectedMerged = new OsvAffected();
+        osvAffectedMerged.setPkg(osvAffectedList.get(0).getPkg());
+        osvAffectedMerged.setRanges(List.of());
+        osvAffectedMerged.setVersions(new ArrayList<>());
+
+        osvAffectedList.forEach(osvAffected -> {
+            if (osvAffected.getRanges().stream().map(OsvRange::getEvents)
+                    .anyMatch(events -> !ObjectUtils.isEmpty(events))) {
+                result.add(osvAffected);
+            }
+            osvAffectedMerged.getVersions().addAll(osvAffected.getVersions());
+        });
+        result.add(osvAffectedMerged);
+
+        return result;
     }
 
     private List<OsvSeverity> toOsv(Metrics metrics) {
