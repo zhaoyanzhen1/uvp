@@ -226,6 +226,10 @@ public class UvpController {
             request = new SearchRequest();
         }
 
+        if (Objects.isNull(request.getKeyword())) {
+            request.setKeyword("");
+        }
+
         SearchResp resp;
         try {
             resp = uvpService.search(request);

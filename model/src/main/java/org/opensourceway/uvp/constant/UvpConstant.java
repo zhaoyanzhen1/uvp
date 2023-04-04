@@ -6,4 +6,6 @@ public class UvpConstant {
     public static final int SEARCH_PAGE_SIZE_DEFAULT = 10;
 
     public static final int SEARCH_PAGE_SIZE_LIMIT = 100;
+
+    public static final int SEARCH_KEYWORD_LENGTH_FORBIDDEN = 1;
 }

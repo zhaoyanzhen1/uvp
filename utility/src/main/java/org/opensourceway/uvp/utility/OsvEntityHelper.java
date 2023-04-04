@@ -432,7 +432,13 @@ public class OsvEntityHelper {
 
     private List<String> getAffectedPackages(Vulnerability vuln) {
         return ObjectUtils.isEmpty(vuln.getAffectedPackages()) ? null : vuln.getAffectedPackages().stream()
-                .map(it -> StringUtils.isBlank(it.getPurl()) ? it.getName() : it.getPurl()).distinct().toList();
+                .map(this::getPkgDisplayName).distinct().toList();
+    }
+
+    private String getPkgDisplayName(AffectedPackage affectedPackage) {
+        return StringUtils.isBlank(affectedPackage.getPurl())
+                ? MessageFormat.format("{0}/{1}", affectedPackage.getEcosystem().getEcosystem(), affectedPackage.getName())
+                : affectedPackage.getPurl();
     }
 
     private Boolean isFixed(Vulnerability vuln) {
@@ -473,9 +479,7 @@ public class OsvEntityHelper {
     private VulnDetailResp.AffectedPackage getAffectedPackage(AffectedPackage pkg) {
         var obj = new VulnDetailResp.AffectedPackage();
 
-        obj.setPkg(StringUtils.isEmpty(pkg.getPurl())
-                ? MessageFormat.format("%s/%s", pkg.getEcosystem().getEcosystem(), pkg.getName())
-                : pkg.getPurl());
+        obj.setPkg(getPkgDisplayName(pkg));
         obj.setAffectedRanges(ObjectUtils.isEmpty(pkg.getRanges()) ? null
                 : pkg.getRanges().stream().map(this::getAffectedRange)
                 .filter(Objects::nonNull).flatMap(List::stream).filter(Objects::nonNull)

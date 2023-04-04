@@ -232,20 +232,23 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
      */
     private List<OsvAffected> mergeAffected(List<OsvAffected> osvAffectedList) {
         var result = new ArrayList<OsvAffected>();
-
-        var osvAffectedMerged = new OsvAffected();
-        osvAffectedMerged.setPkg(osvAffectedList.get(0).getPkg());
-        osvAffectedMerged.setRanges(List.of());
-        osvAffectedMerged.setVersions(new ArrayList<>());
+        var versionMerged = new ArrayList<String>();
 
         osvAffectedList.forEach(osvAffected -> {
             if (osvAffected.getRanges().stream().map(OsvRange::getEvents)
                     .anyMatch(events -> !ObjectUtils.isEmpty(events))) {
                 result.add(osvAffected);
             }
-            osvAffectedMerged.getVersions().addAll(osvAffected.getVersions());
+            versionMerged.addAll(osvAffected.getVersions());
         });
-        result.add(osvAffectedMerged);
+
+        if (!ObjectUtils.isEmpty(versionMerged)) {
+            var osvAffectedMerged = new OsvAffected();
+            osvAffectedMerged.setPkg(osvAffectedList.get(0).getPkg());
+            osvAffectedMerged.setRanges(List.of());
+            osvAffectedMerged.setVersions(versionMerged);
+            result.add(osvAffectedMerged);
+        }
 
         return result;
     }

@@ -82,6 +82,11 @@ public class UvpServiceImpl implements UvpService {
                     UvpConstant.SEARCH_PAGE_SIZE_LIMIT));
         }
 
+        if (request.getKeyword().length() == UvpConstant.SEARCH_KEYWORD_LENGTH_FORBIDDEN) {
+            throw new IllegalArgumentException("The length of keyword must not be %s".formatted(
+                    UvpConstant.SEARCH_KEYWORD_LENGTH_FORBIDDEN));
+        }
+
         // Get one more tuple to check if last page is reached.
         var vulns = vulnLocalService.search(request.getKeyword(), request.getSize() + 1,
                 request.getPage() * request.getSize());
