@@ -41,8 +41,6 @@ Additionally, with heuristic policies, UVP tries to avoid false positives and fa
 
 * [Vtopia](http://www.vulab.com.cn/vtopia.html)
   (**note:** only vulnerabilities affecting [openEuler](https://www.openeuler.org) packages)
-* [7-cai](https://www.7-cai.com)
-  (**note:** only vulnerabilities affecting [OpenHarmony](https://www.openharmony.cn) packages)
 
 # Using UVP
 
