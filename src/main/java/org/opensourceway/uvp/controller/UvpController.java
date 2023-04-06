@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.opensourceway.uvp.api.Example;
 import org.opensourceway.uvp.api.HttpStatusCode;
 import org.opensourceway.uvp.constant.UvpConstant;
@@ -83,6 +84,7 @@ public class UvpController {
                             schema = @Schema(implementation = Error.class),
                             examples = @ExampleObject(value = Example.ERROR_INTERNAL_EXAMPLE)))
     })
+    @Tag(name = "API")
     @GetMapping(value = "/query", produces = APPLICATION_JSON_VALUE)
     public @ResponseBody ResponseEntity<?> query(@RequestParam String purl) {
         logger.info("Query vulns by: <{}>", purl);
@@ -137,6 +139,7 @@ public class UvpController {
                             schema = @Schema(implementation = Error.class),
                             examples = @ExampleObject(value = Example.ERROR_INTERNAL_EXAMPLE)))
     })
+    @Tag(name = "API")
     @PostMapping(value = "/queryBatch", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public @ResponseBody ResponseEntity<?> queryBatch(@RequestBody List<String> purls) {
         logger.info("Batch query vulns by: <{}>", purls);
@@ -188,6 +191,7 @@ public class UvpController {
         return ResponseEntity.status(HttpStatus.OK).body("Batch import successfully");
     }
 
+    @Hidden
     @Operation(summary = "Search vulnerabilities by a given keyword")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Search request that consists of `keyword`, `page`, `size`",
@@ -248,6 +252,7 @@ public class UvpController {
         return ResponseEntity.status(HttpStatus.OK).body(resp);
     }
 
+    @Hidden
     @Operation(summary = "Query details for a given vulnerability")
     @Parameter(
             name = "vulnId",
