@@ -3,6 +3,7 @@
 [![CodeQL](https://github.com/opensourceways/uvp/actions/workflows/codeql.yml/badge.svg)](https://github.com/opensourceways/uvp/actions/workflows/codeql.yml)
 [![Java CI with Gradle](https://github.com/opensourceways/uvp/actions/workflows/gradle.yml/badge.svg)](https://github.com/opensourceways/uvp/actions/workflows/gradle.yml)
 [![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 # Welcome to the UVP Project
 
