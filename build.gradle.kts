@@ -5,9 +5,6 @@ plugins {
     id("war")
 }
 
-group = "org.opensourceway.uvp"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
