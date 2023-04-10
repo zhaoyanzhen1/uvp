@@ -22,4 +22,4 @@ fi
 
 /bin/bash gradlew bootWar
 
-java -jar ${WORKSPACE}/build/libs/uvp-1.0-SNAPSHOT.war --spring.profiles.active=prod
+java -jar ${WORKSPACE}/build/libs/uvp-*.war --spring.profiles.active=prod
