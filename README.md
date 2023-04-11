@@ -30,18 +30,11 @@ and diagnosis service for projects.
 Through periodical aggregation of multiple vulnerability databases, UVP provides timely vulnerability information.
 Additionally, with heuristic policies, UVP tries to avoid false positives and false negatives.
 
-# Integrated Vulnerability Databases
-
-## Open Source
+# Integrated Open Source Vulnerability Databases
 
 * [OSV](https://osv.dev)
 * [OSS Index](https://ossindex.sonatype.org)
 * [NVD](https://nvd.nist.gov)
-
-## Commercial
-
-* [Vtopia](http://www.vulab.com.cn/vtopia.html)
-  (**note:** only vulnerabilities affecting [openEuler](https://www.openeuler.org) packages)
 
 # Using UVP
 
