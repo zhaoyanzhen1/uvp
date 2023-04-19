@@ -1,4 +1,4 @@
-package org.opensourceway.uvp.pojo.nvd;
+package org.opensourceway.uvp.pojo.nvd.cve;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

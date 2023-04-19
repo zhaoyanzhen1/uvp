@@ -3,6 +3,7 @@ package org.opensourceway.uvp.batch.chunk.processor.dumper;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.clients.Nvd;
+import org.opensourceway.uvp.dao.CpeMatchRepository;
 import org.opensourceway.uvp.dao.CpePurlRepository;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.EventType;
@@ -10,14 +11,14 @@ import org.opensourceway.uvp.enums.OsvSchemaVersion;
 import org.opensourceway.uvp.enums.ReferenceType;
 import org.opensourceway.uvp.enums.ScoringSystem;
 import org.opensourceway.uvp.enums.VulnSource;
-import org.opensourceway.uvp.pojo.nvd.Configuration;
-import org.opensourceway.uvp.pojo.nvd.Cpe;
-import org.opensourceway.uvp.pojo.nvd.Description;
-import org.opensourceway.uvp.pojo.nvd.Metrics;
-import org.opensourceway.uvp.pojo.nvd.Node;
-import org.opensourceway.uvp.pojo.nvd.NvdCve;
-import org.opensourceway.uvp.pojo.nvd.NvdCveWrapper;
-import org.opensourceway.uvp.pojo.nvd.Reference;
+import org.opensourceway.uvp.pojo.nvd.cve.Configuration;
+import org.opensourceway.uvp.pojo.nvd.cve.Cpe;
+import org.opensourceway.uvp.pojo.nvd.cve.Description;
+import org.opensourceway.uvp.pojo.nvd.cve.Metrics;
+import org.opensourceway.uvp.pojo.nvd.cve.Node;
+import org.opensourceway.uvp.pojo.nvd.cve.NvdCve;
+import org.opensourceway.uvp.pojo.nvd.cve.NvdCveWrapper;
+import org.opensourceway.uvp.pojo.nvd.cve.Reference;
 import org.opensourceway.uvp.pojo.osv.OsvAffected;
 import org.opensourceway.uvp.pojo.osv.OsvEvent;
 import org.opensourceway.uvp.pojo.osv.OsvRange;
@@ -55,11 +56,16 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
 
     private Map<String, List<String>> cpePurlMapping = new HashMap<>();
 
+    private Map<String, List<String>> matchCriteriaIdToCpes = new HashMap<>();
+
     @Autowired
     private Nvd nvd;
 
     @Autowired
     private CpePurlRepository cpePurlRepository;
+
+    @Autowired
+    private CpeMatchRepository cpeMatchRepository;
 
     @Autowired
     private OsvEntityHelper osvEntityHelper;
@@ -72,7 +78,7 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
             return null;
         }
 
-        var resp = nvd.dumpBatch(startIndex);
+        var resp = nvd.dumpCves(startIndex);
         // Maybe some failure occur, try to call NVD API next time.
         if (Objects.isNull(resp)) {
             logger.warn("Get null response from NVD.");
@@ -145,20 +151,30 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
             return null;
         }
 
-        if (!cpePurlMapping.containsKey(cpe.criteria())) {
+        var cpeNames = new ArrayList<>(matchCriteriaIdToCpes.getOrDefault(cpe.matchCriteriaId(), new ArrayList<>()));
+        cpeNames.add(cpe.criteria());
+
+        var purls = cpeNames.stream()
+                .map(it -> cpePurlMapping.get(it))
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
+
+        if (ObjectUtils.isEmpty(purls)) {
             return null;
         }
 
-        return cpePurlMapping.get(cpe.criteria()).stream().map(purl -> toOsv(cpe, purl)).toList();
+        return purls.stream().map(purl -> toOsv(cpe, purl, cpeNames)).toList();
     }
 
-    private OsvAffected toOsv(Cpe cpe, String purl) {
+    private OsvAffected toOsv(Cpe cpe, String purl, List<String> cpeNames) {
         try {
             var osvAffected = new OsvAffected();
 
             osvAffected.setPkg(PurlUtil.purlToOsvPackage(purl));
             osvAffected.setRanges(List.of(toOsvRange(cpe, purl)));
-            osvAffected.setVersions(getVersionsFromCpe(cpe));
+            osvAffected.setVersions(getVersionsFromCpe(cpeNames));
 
             return osvAffected;
         } catch (Exception e) {
@@ -166,14 +182,9 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
         }
     }
 
-    private List<String> getVersionsFromCpe(Cpe cpe) {
-        List<String> versions = new ArrayList<>();
-        String version;
-        if ((version = getVersionFromCpe(cpe.criteria())) != null) {
-            versions.add(version);
-        }
+    private List<String> getVersionsFromCpe(List<String> cpeNames) {
         // TODO Expand versions from Starting and Ending
-        return versions;
+        return cpeNames.stream().map(this::getVersionFromCpe).filter(Objects::nonNull).distinct().toList();
     }
 
     private String getVersionFromCpe(String cpe) {
@@ -302,13 +313,15 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
 
     @Override
     public void beforeStep(@NotNull StepExecution stepExecution) {
-        logger.info("Fetch CPE-PURL mapping from database.");
+        logger.info("Fetch CPE-PURL mapping and CPE matches from database.");
         cpePurlRepository.findAll().forEach(it -> it.getCpes().forEach(cpe -> cpePurlMapping.put(cpe, it.getPurls())));
+        cpeMatchRepository.findAll().forEach(it -> matchCriteriaIdToCpes.put(it.getMatchCriteriaId(), it.getCpes()));
     }
 
     @Override
     public ExitStatus afterStep(@NotNull StepExecution stepExecution) {
         cpePurlMapping.clear();
+        matchCriteriaIdToCpes.clear();
         return null;
     }
 }

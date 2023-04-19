@@ -1,11 +1,11 @@
-package org.opensourceway.uvp.pojo.nvd;
+package org.opensourceway.uvp.pojo.nvd.cve;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
 /**
- * See <a href="https://nvd.nist.gov/developers/vulnerabilities">NVD API DOC</a> for details.
+ * See <a href="https://nvd.nist.gov/developers/vulnerabilities">NVD Vuln API DOC</a> for details.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NvdCveResp {

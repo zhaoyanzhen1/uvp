@@ -1,4 +1,4 @@
-package org.opensourceway.uvp.batch.chunk.reader.dumper;
+package org.opensourceway.uvp.batch.chunk.reader.assistant;
 
 import org.opensourceway.uvp.clients.Nvd;
 import org.slf4j.Logger;
@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NvdReader implements ItemReader<Integer> {
+public class NvdCpeMatchReader implements ItemReader<Integer> {
 
-    private static final Logger logger = LoggerFactory.getLogger(NvdReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(NvdCpeMatchReader.class);
 
-    @Value("${nvd.api.cves.page_size}")
-    private Integer nvdCvesPageSize;
+    @Value("${nvd.api.cpematch.page_size}")
+    private Integer nvdCpeMatchPageSize;
 
     @Autowired
     private Nvd nvd;
@@ -42,7 +42,7 @@ public class NvdReader implements ItemReader<Integer> {
             return null;
         }
 
-        return startIndex.addAndGet(nvdCvesPageSize);
+        return startIndex.addAndGet(nvdCpeMatchPageSize);
     }
 
     private void initMapper() {
@@ -50,9 +50,9 @@ public class NvdReader implements ItemReader<Integer> {
             return;
         }
 
-        logger.info("Query NVD CVE total size");
+        logger.info("Query NVD CPE match total size");
 
-        var resp = nvd.dumpCves(0);
+        var resp = nvd.dumpCpes(0);
         // Maybe some failure occur, try to call NVD API next time.
         if (Objects.isNull(resp)) {
             logger.warn("Get null response from NVD.");
@@ -60,7 +60,7 @@ public class NvdReader implements ItemReader<Integer> {
         }
 
         totalResults = new AtomicInteger(resp.getTotalResults());
-        startIndex = new AtomicInteger(-nvdCvesPageSize);
-        logger.info("Number of NVD CVE: <{}>.", totalResults);
+        startIndex = new AtomicInteger(-nvdCpeMatchPageSize);
+        logger.info("Number of NVD CPE match: <{}>.", totalResults);
     }
 }

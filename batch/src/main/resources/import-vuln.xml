@@ -47,12 +47,45 @@
             </flow>
             <flow>
                 <decision id="dumpFromNvdDecision" decider="dumpFromNvdDecider">
-                    <next on="COMPLETED" to="dumpCpePurlMapping"/>
+                    <next on="COMPLETED" to="prepareForNvd"/>
                     <end on="*"/>
                 </decision>
-                <step id="dumpCpePurlMapping" next="dumpFromNvd">
-                    <tasklet ref="dumpCpePurlMappingStep"/>
-                </step>
+                <split id="prepareForNvd" task-executor="taskExecutor" next="dumpFromNvd">
+                    <flow>
+                        <step id="dumpCpePurlMapping">
+                            <tasklet ref="dumpCpePurlMappingStep"/>
+                        </step>
+                    </flow>
+                    <flow>
+                        <step id="dumpCpeMatch">
+                            <tasklet task-executor="taskExecutor">
+                                <chunk commit-interval="1" retry-limit="3">
+                                    <reader>
+                                        <beans:bean id="nvdCpeMatchReader"
+                                                    class="org.opensourceway.uvp.batch.chunk.reader.assistant.NvdCpeMatchReader"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </reader>
+                                    <processor>
+                                        <beans:bean id="nvdCpeMatchProcessor"
+                                                    class="org.opensourceway.uvp.batch.chunk.processor.assistant.NvdCpeMatchProcessor"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </processor>
+                                    <writer>
+                                        <beans:bean id="nvdCpeMatchWriter"
+                                                    class="org.opensourceway.uvp.batch.chunk.writer.assistant.NvdCpeMatchWriter"
+                                                    scope="step">
+                                        </beans:bean>
+                                    </writer>
+                                    <retryable-exception-classes>
+                                        <include class="java.lang.Exception"/>
+                                    </retryable-exception-classes>
+                                </chunk>
+                            </tasklet>
+                        </step>
+                    </flow>
+                </split>
                 <step id="dumpFromNvd">
                     <tasklet task-executor="taskExecutor">
                         <chunk commit-interval="1" retry-limit="3">
