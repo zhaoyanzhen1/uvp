@@ -249,8 +249,9 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
             if (osvAffected.getRanges().stream().map(OsvRange::getEvents)
                     .anyMatch(events -> !ObjectUtils.isEmpty(events))) {
                 result.add(osvAffected);
+            } else {
+                versionMerged.addAll(osvAffected.getVersions());
             }
-            versionMerged.addAll(osvAffected.getVersions());
         });
 
         if (!ObjectUtils.isEmpty(versionMerged)) {
