@@ -7,8 +7,7 @@ INSERT INTO vuln_source_config(source, import_enabled, config) VALUES
 ('OSV', true, '{}'::jsonb),
 ('NVD', true, '{}'::jsonb),
 ('OSS_INDEX', true, '{}'::jsonb),
-('VTOPIA', false, '{}'::jsonb),
-('PRISM_7_CAI', false, '{}'::jsonb)
+('VTOPIA', false, '{}'::jsonb)
 ON CONFLICT (source) DO NOTHING;
 
 -- The job names MUST be the same as those defined in QuartzJobEnum.java

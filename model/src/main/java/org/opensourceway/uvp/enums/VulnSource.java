@@ -21,8 +21,6 @@ public enum VulnSource {
     OSS_INDEX(2, VulnSourceCategory.PUBLIC),
 
     VTOPIA(2, VulnSourceCategory.PRIVATE),
-
-    PRISM_7_CAI(2, VulnSourceCategory.PRIVATE),
     ;
 
     /**
