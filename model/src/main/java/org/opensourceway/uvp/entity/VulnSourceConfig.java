@@ -72,6 +72,8 @@ public class VulnSourceConfig {
      * Keys of configurations.
      */
     public enum ConfigKey {
-        TOKEN
+        TOKEN,
+
+        ENDPOINT,
     }
 }

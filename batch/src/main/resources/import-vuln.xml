@@ -124,6 +124,40 @@
                     <tasklet ref="dumpFromOssIndexStep"/>
                 </step>
             </flow>
+            <flow>
+                <decision id="dumpFromVtopiaDecision" decider="dumpFromVtopiaDecider">
+                    <next on="COMPLETED" to="dumpFromVtopia"/>
+                    <end on="*"/>
+                </decision>
+                <step id="dumpFromVtopia">
+                    <tasklet task-executor="taskExecutor">
+                        <chunk commit-interval="1" retry-limit="3">
+                            <reader>
+                                <beans:bean id="vtopiaReader"
+                                            class="org.opensourceway.uvp.batch.chunk.reader.dumper.VtopiaReader"
+                                            scope="step">
+                                </beans:bean>
+                            </reader>
+                            <processor>
+                                <beans:bean id="vtopiaProcessor"
+                                            class="org.opensourceway.uvp.batch.chunk.processor.dumper.VtopiaProcessor"
+                                            scope="step">
+                                </beans:bean>
+                            </processor>
+                            <writer>
+                                <beans:bean id="vtopiaWriter"
+                                            class="org.opensourceway.uvp.batch.chunk.writer.VulnWriter"
+                                            scope="step">
+                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="VTOPIA"/>
+                                </beans:bean>
+                            </writer>
+                            <retryable-exception-classes>
+                                <include class="java.lang.Exception"/>
+                            </retryable-exception-classes>
+                        </chunk>
+                    </tasklet>
+                </step>
+            </flow>
         </split>
         <split id="aggregateVulns" task-executor="taskExecutor">
             <flow>
@@ -202,6 +236,10 @@
 
     <bean id="dumpFromOssIndexDecider" class="org.opensourceway.uvp.batch.decider.DumpDecider">
         <constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="OSS_INDEX"/>
+    </bean>
+
+    <bean id="dumpFromVtopiaDecider" class="org.opensourceway.uvp.batch.decider.DumpDecider">
+        <constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="VTOPIA"/>
     </bean>
 
     <bean id="dumpCpePurlMappingStep" class="org.opensourceway.uvp.batch.step.DumpCpePurlMappingStep"/>

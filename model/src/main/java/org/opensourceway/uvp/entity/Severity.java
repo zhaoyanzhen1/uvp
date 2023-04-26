@@ -39,19 +39,19 @@ public class Severity {
      */
     @Enumerated(EnumType.STRING)
     @Type(PostgreSQLEnumType.class)
-    @Column(name = "scoring_system", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "scoring_system", columnDefinition = "TEXT")
     private ScoringSystem scoringSystem;
 
     /**
      * The score of a vulnerability calculated by the scoring system.
      */
-    @Column(nullable = false)
+    @Column
     private Double score;
 
     /**
      * The vector of a vulnerability calculated by the scoring system.
      */
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String vector;
 
     /**

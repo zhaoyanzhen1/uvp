@@ -24,4 +24,8 @@ public class VulnSourceConfigUtil {
     public String getToken(VulnSource source) {
         return getConfig(source).get(VulnSourceConfig.ConfigKey.TOKEN.name());
     }
+
+    public String getEndpoint(VulnSource source) {
+        return getConfig(source).get(VulnSourceConfig.ConfigKey.ENDPOINT.name());
+    }
 }

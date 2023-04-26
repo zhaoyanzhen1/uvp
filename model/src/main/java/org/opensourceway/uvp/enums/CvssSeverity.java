@@ -60,6 +60,10 @@ public enum CvssSeverity {
     }
 
     public static CvssSeverity calculateCvssSeverity(ScoringSystem scoringSystem, Double score) {
+        if (Objects.isNull(score)) {
+            return CvssSeverity.UNKNOWN;
+        }
+
         if (ScoringSystem.CVSS_V2.equals(scoringSystem)) {
             for (CvssSeverity severity : CvssSeverity.values()) {
                 if (Objects.isNull(severity.getCvss2LowerBound())) {
