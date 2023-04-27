@@ -109,6 +109,12 @@ public enum Ecosystem {
     GSD("GSD", null, VersionType.ECOSYSTEM),
 
     UVI("UVI", null, VersionType.ECOSYSTEM),
+
+    CONAN_CENTER("ConanCenter", "conan", VersionType.ECOSYSTEM),
+
+    ROCKY_LINUX("Rocky Linux", null, VersionType.ECOSYSTEM),
+
+    ALMA_LINUX("AlmaLinux", null, VersionType.ECOSYSTEM),
     ;
 
     private final String ecosystem;

@@ -26,7 +26,8 @@ import java.util.UUID;
  */
 @Entity
 @Table(indexes = {
-        @Index(name = "severity_uk", columnList = "vuln_id, scoring_system, vector", unique = true),
+        @Index(name = "vuln_severity_uk", columnList = "vuln_id, scoring_system, vector", unique = true),
+        @Index(name = "affected_pkg_severity_uk", columnList = "affected_pkg_id, scoring_system, vector", unique = true),
         @Index(name = "severity_vuln_id_idx", columnList = "vuln_id")
 })
 public class Severity {
@@ -65,10 +66,18 @@ public class Severity {
     /**
      * Vulnerability that severity metrics belong to.
      */
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "vuln_id", foreignKey = @ForeignKey(name = "vuln_id_fk"))
     @JsonIgnore
     private Vulnerability vulnerability;
+
+    /**
+     * Affected package that severity metrics belong to.
+     */
+    @ManyToOne
+    @JoinColumn(name = "affected_pkg_id", foreignKey = @ForeignKey(name = "affected_pkg_id_fk"))
+    @JsonIgnore
+    private AffectedPackage affectedPackage;
 
     public UUID getId() {
         return id;
@@ -116,6 +125,14 @@ public class Severity {
 
     public void setVulnerability(Vulnerability vulnerability) {
         this.vulnerability = vulnerability;
+    }
+
+    public AffectedPackage getAffectedPackage() {
+        return affectedPackage;
+    }
+
+    public void setAffectedPackage(AffectedPackage affectedPackage) {
+        this.affectedPackage = affectedPackage;
     }
 
     @Override

@@ -122,7 +122,7 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
         @Override
         public OsvVulnerability convert(NvdCve cve) {
             var osv = new OsvVulnerability();
-            osv.setSchemaVersion(OsvSchemaVersion.V1_3_0);
+            osv.setSchemaVersion(OsvSchemaVersion.V1_5_0);
             osv.setId(cve.getId());
             osv.setModified(convertNvdTimestamp(cve.getLastModified()));
             osv.setPublished(convertNvdTimestamp(cve.getPublished()));

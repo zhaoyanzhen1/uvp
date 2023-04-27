@@ -131,6 +131,7 @@ public class OsvEntityHelper {
         var entity = new Credit();
         entity.setName(osvCredit.getName());
         entity.setContacts(osvCredit.getContact());
+        entity.setType(osvCredit.getType());
         entity.setVulnerability(vuln);
         return entity;
     }
@@ -147,10 +148,28 @@ public class OsvEntityHelper {
         entity.setVersions(Objects.isNull(osvAffected.getVersions()) ? new ArrayList<>() : osvAffected.getVersions());
         entity.setEcosystemSpecific(osvAffected.getEcosystemSpecific());
         entity.setDatabaseSpecific(osvAffected.getDatabaseSpecific());
+        entity.setSeverities(Objects.isNull(osvAffected.getSeverity()) ? new ArrayList<>()
+                : osvAffected.getSeverity().stream()
+                .map(it -> toEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
         entity.setRanges(Objects.isNull(osvAffected.getRanges()) ? new ArrayList<>()
                 : osvAffected.getRanges().stream()
                 .map(it -> toEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
         entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private Severity toEntity(OsvSeverity osvSeverity, AffectedPackage affectedPackage) {
+        if (Objects.isNull(osvSeverity)) {
+            return null;
+        }
+
+        var entity = new Severity();
+        entity.setScoringSystem(osvSeverity.getType());
+        Double score = CvssUtil.calculateScore(osvSeverity.getScore());
+        entity.setScore(score);
+        entity.setVector(osvSeverity.getScore());
+        entity.setSeverity(CvssSeverity.calculateCvssSeverity(osvSeverity.getType(), score));
+        entity.setAffectedPackage(affectedPackage);
         return entity;
     }
 
@@ -211,6 +230,7 @@ public class OsvEntityHelper {
         osvPackage.setName(affectedPackage.getName());
         osvPackage.setPurl(affectedPackage.getPurl());
         vo.setPkg(osvPackage);
+        vo.setSeverity(affectedPackage.getSeverities().stream().map(this::toVo).toList());
         vo.setRanges(affectedPackage.getRanges().stream().map(this::toVo).toList());
         vo.setVersions(affectedPackage.getVersions());
         vo.setDatabaseSpecific(affectedPackage.getDatabaseSpecific());
@@ -231,6 +251,7 @@ public class OsvEntityHelper {
         var vo = new OsvCredit();
         vo.setName(credit.getName());
         vo.setContact(credit.getContacts());
+        vo.setType(credit.getType());
         return vo;
     }
 
@@ -335,6 +356,7 @@ public class OsvEntityHelper {
         var entity = new Credit();
         entity.setName(old.getName());
         entity.setContacts(old.getContacts());
+        entity.setType(old.getType());
         entity.setVulnerability(vuln);
         return entity;
     }
@@ -351,10 +373,27 @@ public class OsvEntityHelper {
         entity.setVersions(old.getVersions());
         entity.setEcosystemSpecific(old.getEcosystemSpecific());
         entity.setDatabaseSpecific(old.getDatabaseSpecific());
+        entity.setSeverities(Objects.isNull(old.getSeverities()) ? new ArrayList<>()
+                : old.getSeverities().stream()
+                .map(it -> copyEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
         entity.setRanges(Objects.isNull(old.getRanges()) ? new ArrayList<>()
                 : old.getRanges().stream()
                 .map(it -> copyEntity(it, entity)).filter(Objects::nonNull).collect(Collectors.toList()));
         entity.setVulnerability(vuln);
+        return entity;
+    }
+
+    private Severity copyEntity(Severity old, AffectedPackage affectedPackage) {
+        if (Objects.isNull(old)) {
+            return null;
+        }
+
+        var entity = new Severity();
+        entity.setScoringSystem(old.getScoringSystem());
+        entity.setScore(old.getScore());
+        entity.setVector(old.getVector());
+        entity.setSeverity(old.getSeverity());
+        entity.setAffectedPackage(affectedPackage);
         return entity;
     }
 

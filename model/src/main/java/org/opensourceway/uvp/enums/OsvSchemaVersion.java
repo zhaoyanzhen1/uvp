@@ -12,7 +12,10 @@ public enum OsvSchemaVersion {
 
     V1_3_1("1.3.1"),
 
-    V1_4_0("1.4.0");
+    V1_4_0("1.4.0"),
+
+    V1_5_0("1.5.0"),
+    ;
 
     private final String version;
 

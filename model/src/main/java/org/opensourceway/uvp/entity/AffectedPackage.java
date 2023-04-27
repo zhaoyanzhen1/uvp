@@ -89,6 +89,12 @@ public class AffectedPackage {
     private Map<Object, Object> databaseSpecific;
 
     /**
+     * The seriousness of a vulnerability.
+     */
+    @OneToMany(mappedBy = "affectedPackage", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Severity> severities = new ArrayList<>();
+
+    /**
      * The ranges of an affected package.
      */
     @OneToMany(mappedBy = "affectedPackage", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -158,6 +164,19 @@ public class AffectedPackage {
         this.databaseSpecific = databaseSpecific;
     }
 
+    public List<Severity> getSeverities() {
+        return severities;
+    }
+
+    public void setSeverities(List<Severity> severities) {
+        if (Objects.isNull(this.severities)) {
+            this.severities = severities;
+        } else {
+            this.severities.clear();
+            this.severities.addAll(severities);
+        }
+    }
+
     public List<AffectedRange> getRanges() {
         return ranges;
     }
@@ -190,12 +209,13 @@ public class AffectedPackage {
                 CollectionUtils.isEqualCollection(versions, that.versions) &&
                 Objects.equals(ecosystemSpecific, that.ecosystemSpecific) &&
                 Objects.equals(databaseSpecific, that.databaseSpecific) &&
-                CollectionUtils.isEqualCollection(ranges, that.ranges);
+                CollectionUtils.isEqualCollection(ranges, that.ranges) &&
+                CollectionUtils.isEqualCollection(severities, that.severities);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(ecosystem, name, purl, Set.copyOf(versions), ecosystemSpecific, databaseSpecific,
-                Set.copyOf(ranges));
+                Set.copyOf(ranges), Set.copyOf(severities));
     }
 }

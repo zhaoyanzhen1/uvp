@@ -14,6 +14,8 @@ public class OsvAffected {
     @JsonProperty("package")
     private OsvPackage pkg;
 
+    private List<OsvSeverity> severity;
+
     private List<OsvRange> ranges;
 
     private List<String> versions;
@@ -30,6 +32,14 @@ public class OsvAffected {
 
     public void setPkg(OsvPackage pkg) {
         this.pkg = pkg;
+    }
+
+    public List<OsvSeverity> getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(List<OsvSeverity> severity) {
+        this.severity = severity;
     }
 
     public List<OsvRange> getRanges() {

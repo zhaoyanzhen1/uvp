@@ -2,8 +2,11 @@ package org.opensourceway.uvp.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
+import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Type;
+import org.opensourceway.uvp.enums.CreditType;
 
 import java.util.List;
 import java.util.Objects;
@@ -40,6 +44,14 @@ public class Credit {
     @Column(columnDefinition = "TEXT[]")
     @Type(ListArrayType.class)
     private List<String> contacts;
+
+    /**
+     * Credit type.
+     */
+    @Enumerated(EnumType.STRING)
+    @Type(PostgreSQLEnumType.class)
+    @Column(columnDefinition = "TEXT")
+    private CreditType type;
 
     /**
      * Vulnerability that a credit is given.
@@ -73,6 +85,14 @@ public class Credit {
         this.contacts = contacts;
     }
 
+    public CreditType getType() {
+        return type;
+    }
+
+    public void setType(CreditType type) {
+        this.type = type;
+    }
+
     public Vulnerability getVulnerability() {
         return vulnerability;
     }
@@ -87,7 +107,8 @@ public class Credit {
         if (o == null || getClass() != o.getClass()) return false;
         Credit credit = (Credit) o;
         return Objects.equals(name, credit.name) &&
-                Objects.equals(contacts, credit.contacts);
+                Objects.equals(contacts, credit.contacts) &&
+                Objects.equals(type, credit.type);
     }
 
     @Override
