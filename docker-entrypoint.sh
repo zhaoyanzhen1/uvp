@@ -22,4 +22,4 @@ fi
 
 /bin/bash gradlew bootWar
 
-java -jar ${WORKSPACE}/build/libs/uvp-*.war --spring.profiles.active=prod
+java -jar -XX:MaxRAMPercentage=60.0 ${WORKSPACE}/build/libs/uvp-*.war --spring.profiles.active=prod
