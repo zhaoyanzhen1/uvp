@@ -114,7 +114,15 @@ public enum Ecosystem {
 
     ROCKY_LINUX("Rocky Linux", null, VersionType.ECOSYSTEM),
 
+    ROCKY_LINUX_8("Rocky Linux:8", null, VersionType.ECOSYSTEM),
+
+    ROCKY_LINUX_9("Rocky Linux:9", null, VersionType.ECOSYSTEM),
+
     ALMA_LINUX("AlmaLinux", null, VersionType.ECOSYSTEM),
+
+    ALMA_LINUX_8("AlmaLinux:8", null, VersionType.ECOSYSTEM),
+
+    ALMA_LINUX_9("AlmaLinux:9", null, VersionType.ECOSYSTEM),
     ;
 
     private final String ecosystem;
