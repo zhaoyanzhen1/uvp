@@ -31,11 +31,11 @@ public class VulnAggregatorImpl implements VulnAggregator {
     private OsvEntityHelper osvEntityHelper;
 
     @Override
-    public List<Vulnerability> aggregate(List<Vulnerability> vulns) {
+    public List<Vulnerability> aggregate(List<Vulnerability> vulns, List<String> vulnIds) {
         logger.info("Aggregate <{}> vulns", vulns.size());
 
         Map<String, Pair<Set<String>, List<Vulnerability>>> vulnIdToAliasAndVuln = new HashMap<>();
-        vulns.forEach(vuln -> groupVulnsByVulnId(vuln, vulnIdToAliasAndVuln));
+        vulns.forEach(vuln -> groupVulnsByVulnId(vuln, vulnIds, vulnIdToAliasAndVuln));
         var result = vulnIdToAliasAndVuln.entrySet().stream()
                 .map(it -> aggregate(it.getKey(), it.getValue().getFirst().stream().toList(), it.getValue().getSecond()))
                 .toList();
@@ -44,14 +44,14 @@ public class VulnAggregatorImpl implements VulnAggregator {
         return result;
     }
 
-    private void groupVulnsByVulnId(Vulnerability vuln,
+    private void groupVulnsByVulnId(Vulnerability vuln, List<String> vulnIds,
                                     Map<String, Pair<Set<String>, List<Vulnerability>>> vulnIdToAliasAndVuln) {
         if (!RegexUtil.isCveId(vuln.getVulnId())
                 && vuln.getAliases().stream().map(Alias::getAlias).anyMatch(RegexUtil::isCveId)) {
             var nonCveAliases = Stream.concat(
                     vuln.getAliases().stream().map(Alias::getAlias).filter(it -> !RegexUtil.isCveId(it)),
                     Stream.of(vuln.getVulnId())).collect(Collectors.toSet());
-            vuln.getAliases().stream().map(Alias::getAlias).filter(RegexUtil::isCveId)
+            vuln.getAliases().stream().map(Alias::getAlias).filter(RegexUtil::isCveId).filter(vulnIds::contains)
                     .forEach(it -> groupAliasesAndVulns(vuln, it, nonCveAliases, vulnIdToAliasAndVuln));
         } else {
             groupAliasesAndVulns(vuln, vuln.getVulnId(),
@@ -95,7 +95,7 @@ public class VulnAggregatorImpl implements VulnAggregator {
         vuln.setReferences(vulns.stream().map(Vulnerability::getReferences).flatMap(List::stream).distinct().toList());
         vuln.setCredits(vulns.stream().map(Vulnerability::getCredits).flatMap(List::stream).distinct().toList());
         vuln.setAffectedPackages(vulns.stream().map(Vulnerability::getAffectedPackages).flatMap(List::stream).distinct().toList());
-        vuln.setAliases(aliases.stream().map(it -> osvEntityHelper.toEntity(it, vuln)).toList());
+        vuln.setAliases(aliases.stream().sorted().map(it -> osvEntityHelper.toEntity(it, vuln)).toList());
 
         return vuln;
     }

@@ -38,7 +38,7 @@ public class VulnAggregateProcessor implements ItemProcessor<List<String>, List<
         var sources = (publicOnly ? VulnSource.getPublicSource() : VulnSource.getPublicAndPrivateSource())
                 .stream().map(Enum::name).toList();
         var vulns = vulnerabilityRepository.findBySourcesAndVulnIds(sources, vulnIds);
-        var aggregatedVulns = vulnAggregator.aggregate(vulns)
+        var aggregatedVulns = vulnAggregator.aggregate(vulns, vulnIds)
                 .stream()
                 .map(vuln -> osvEntityHelper.copyEntity(vuln,
                         publicOnly ? VulnSource.AGGREGATED : VulnSource.AGGREGATED_WITH_PRIVATE))
