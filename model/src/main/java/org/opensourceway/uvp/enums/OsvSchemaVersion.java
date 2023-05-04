@@ -28,6 +28,10 @@ public enum OsvSchemaVersion {
         return version;
     }
 
+    public static OsvSchemaVersion newestVersion() {
+        return V1_5_0;
+    }
+
     public static OsvSchemaVersion findByVersion(String version) {
         if (StringUtils.isEmpty(version)) {
             return null;

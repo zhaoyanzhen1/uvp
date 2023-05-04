@@ -21,7 +21,7 @@ public class OssIndexConverter implements VulnConverter<Pair<String, OssIndexVul
     @Override
     public OsvVulnerability convert(Pair<String, OssIndexVulnerability> vulnObj) {
         var osv = new OsvVulnerability();
-        osv.setSchemaVersion(OsvSchemaVersion.V1_5_0);
+        osv.setSchemaVersion(OsvSchemaVersion.newestVersion());
         osv.setId(vulnObj.getSecond().getId());
         osv.setSummary(vulnObj.getSecond().getTitle());
         osv.setDetails(vulnObj.getSecond().getDescription());

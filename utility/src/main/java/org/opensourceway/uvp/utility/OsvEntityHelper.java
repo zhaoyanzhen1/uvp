@@ -206,7 +206,7 @@ public class OsvEntityHelper {
         return entity;
     }
 
-    private Alias toEntity(String alias, Vulnerability vuln) {
+    public Alias toEntity(String alias, Vulnerability vuln) {
         if (Objects.isNull(alias)) {
             return null;
         }

@@ -89,7 +89,7 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
         @Override
         public OsvVulnerability convert(VtopiaVulnerability vuln) {
             var osv = new OsvVulnerability();
-            osv.setSchemaVersion(OsvSchemaVersion.V1_5_0);
+            osv.setSchemaVersion(OsvSchemaVersion.newestVersion());
             osv.setId(vuln.getCveNum());
             osv.setModified(convertVtopiaTimestamp(vuln.getEndGetTime()));
             osv.setPublished(convertVtopiaTimestamp(vuln.getPublishedDate()));

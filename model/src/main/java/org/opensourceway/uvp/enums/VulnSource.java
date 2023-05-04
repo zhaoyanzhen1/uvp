@@ -9,25 +9,19 @@ import java.util.Objects;
 
 public enum VulnSource {
     // Aggregated Vulnerabilities from open source databases.
-    AGGREGATED(null, VulnSourceCategory.AGGREGATED),
+    AGGREGATED(VulnSourceCategory.AGGREGATED),
 
     // Aggregated Vulnerabilities from open source and private databases.
-    AGGREGATED_WITH_PRIVATE(null, VulnSourceCategory.AGGREGATED),
+    AGGREGATED_WITH_PRIVATE(VulnSourceCategory.AGGREGATED),
 
-    OSV(0, VulnSourceCategory.PUBLIC),
+    OSV(VulnSourceCategory.PUBLIC),
 
-    NVD(1, VulnSourceCategory.PUBLIC),
+    NVD(VulnSourceCategory.PUBLIC),
 
-    OSS_INDEX(2, VulnSourceCategory.PUBLIC),
+    OSS_INDEX(VulnSourceCategory.PUBLIC),
 
-    VTOPIA(2, VulnSourceCategory.PRIVATE),
+    VTOPIA(VulnSourceCategory.PRIVATE),
     ;
-
-    /**
-     * The priority of the vuln source. A smaller number indicates a higher priority.
-     * <p>Used by aggregator.</p>
-     */
-    private final Integer priority;
 
     /**
      * The category of vuln source.
@@ -36,21 +30,12 @@ public enum VulnSource {
      */
     private final VulnSourceCategory category;
 
-    VulnSource(Integer priority, VulnSourceCategory category) {
-        this.priority = priority;
+    VulnSource(VulnSourceCategory category) {
         this.category = category;
-    }
-
-    public Integer getPriority() {
-        return priority;
     }
 
     public VulnSourceCategory getCategory() {
         return category;
-    }
-
-    public boolean hasHigherPriority(VulnSource other) {
-        return this.priority < other.priority;
     }
 
     public static List<VulnSource> getPublicSource() {
