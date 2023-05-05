@@ -89,7 +89,7 @@ public class VulnAggregatorImpl implements VulnAggregator {
                 .findFirst().orElse(null));
         vuln.setDatabaseSpecific(vulns.stream().filter(it -> !ObjectUtils.isEmpty(it.getDatabaseSpecific()))
                 .collect(Collectors.toMap(it -> it.getSource().name(), Vulnerability::getDatabaseSpecific, (oldVal, newVal) -> newVal)));
-        vuln.setSeverities(vulns.stream()
+        vuln.setSeverities(vulns.stream().filter(it -> !ObjectUtils.isEmpty(it.getSeverities()))
                 .max(Comparator.comparing(Vulnerability::getModified, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(Vulnerability::getSeverities).orElse(new ArrayList<>()));
         vuln.setReferences(vulns.stream().map(Vulnerability::getReferences).flatMap(List::stream).distinct().toList());
