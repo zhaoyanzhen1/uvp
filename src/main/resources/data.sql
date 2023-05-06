@@ -12,7 +12,7 @@ ON CONFLICT (source) DO NOTHING;
 
 -- The job names MUST be the same as those defined in QuartzJobEnum.java
 INSERT INTO quartz_job_config(job, cron) VALUES
-('DUMP_VULN_JOB', '0 0 2 * * ? *'),
+('DUMP_VULN_JOB', '0 0 */1 * * ? *'),
 ('CAPTURE_CRON_JOB', '*/10 * * * * ? *')
 ON CONFLICT (job) DO NOTHING;
 

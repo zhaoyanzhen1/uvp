@@ -42,7 +42,7 @@ public class VulnAggregateReader implements ItemReader<List<String>> {
     private void initMapper() {
         logger.info("Query distinct vulnerability IDs.");
 
-        var vulnIds = vulnerabilityRepository.findDistinctVulnIds();
+        var vulnIds = vulnerabilityRepository.findDistinctUpsertOriginalVulnIds();
         vulnIdLists = ListUtils.partition(vulnIds, BATCH_SIZE)
                 .stream()
                 .map(ArrayList::new)

@@ -67,7 +67,7 @@ public class OsvEntityHelper {
         vuln.setSchemaVersion(osvVuln.getSchemaVersion());
         vuln.setVulnId(osvVuln.getId());
         vuln.setAliases(Objects.isNull(osvVuln.getAliases()) ? new ArrayList<>()
-                : osvVuln.getAliases().stream()
+                : osvVuln.getAliases().stream().distinct()
                 .map(it -> toEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
         vuln.setRelated(osvVuln.getRelated());
         vuln.setModified(Objects.isNull(osvVuln.getModified()) ? null
@@ -83,7 +83,7 @@ public class OsvEntityHelper {
                 : osvVuln.getSeverity().stream()
                 .map(it -> toEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
         vuln.setReferences(Objects.isNull(osvVuln.getReferences()) ? new ArrayList<>()
-                : osvVuln.getReferences().stream()
+                : osvVuln.getReferences().stream().distinct()
                 .map(it -> toEntity(it, vuln)).filter(Objects::nonNull).collect(Collectors.toList()));
         vuln.setCredits(Objects.isNull(osvVuln.getCredits()) ? new ArrayList<>()
                 : osvVuln.getCredits().stream()
@@ -594,6 +594,7 @@ public class OsvEntityHelper {
 
     private Vulnerability update(Vulnerability existVuln, Vulnerability newVuln) {
         if (Objects.isNull(existVuln)) {
+            newVuln.setInserted(true);
             return newVuln;
         }
 
@@ -609,6 +610,7 @@ public class OsvEntityHelper {
         existVuln.setSummary(newVuln.getSummary());
         existVuln.setDetail(newVuln.getDetail());
         existVuln.setDatabaseSpecific(newVuln.getDatabaseSpecific());
+        existVuln.setUpdated(true);
 
         existVuln.getAliases().stream().filter(it -> !newVuln.getAliases().contains(it)).toList()
                 .forEach(existVuln::removeAlias);

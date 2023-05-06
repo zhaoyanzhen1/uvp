@@ -159,7 +159,7 @@
                 </step>
             </flow>
         </split>
-        <split id="aggregateVulns" task-executor="taskExecutor">
+        <split id="aggregateVulns" task-executor="taskExecutor" next="updateStateOfOriginalVulns">
             <flow>
                 <step id="aggregatePublicVulns">
                     <tasklet>
@@ -222,8 +222,11 @@
                     </tasklet>
                 </step>
             </flow>
-            <end on="*"/>
         </split>
+        <step id="updateStateOfOriginalVulns">
+            <tasklet ref="updateStateOfOriginalVulnsStep"/>
+            <end on="*"/>
+        </step>
     </job>
 
     <bean id="dumpFromOsvDecider" class="org.opensourceway.uvp.batch.decider.DumpDecider">
@@ -248,6 +251,8 @@
         <constructor-arg ref="ossIndex"/>
         <constructor-arg ref="ossIndexMerger"/>
     </bean>
+
+    <bean id="updateStateOfOriginalVulnsStep" class="org.opensourceway.uvp.batch.step.UpdateStateOfOriginalVulnsStep"/>
 
     <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 </beans>
