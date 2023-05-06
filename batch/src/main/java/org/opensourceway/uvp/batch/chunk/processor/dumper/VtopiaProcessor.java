@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerability>> {
@@ -207,11 +208,15 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
          * @return ISO-8601 timestamp
          */
         private static String convertVtopiaTimestamp(String timestamp) {
+            var formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            formatter.setTimeZone(TimeZone.getTimeZone("GMT+8"));
             try {
-                return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(timestamp).toInstant().toString();
+                return formatter.parse(timestamp).toInstant().toString();
             } catch (ParseException e) {
+                formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+                formatter.setTimeZone(TimeZone.getTimeZone("GMT+8"));
                 try {
-                    return new SimpleDateFormat("yyyy-MM-dd hh:mm").parse(timestamp).toInstant().toString();
+                    return formatter.parse(timestamp).toInstant().toString();
                 } catch (ParseException e1) {
                     // If failed to parse the timestamp, return null as an alternative.
                     return null;

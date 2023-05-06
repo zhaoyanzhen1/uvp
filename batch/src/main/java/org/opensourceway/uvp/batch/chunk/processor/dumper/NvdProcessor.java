@@ -42,13 +42,13 @@ import us.springett.parsers.cpe.values.LogicalValue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>, StepExecutionListener {
@@ -322,11 +322,13 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
          * @return ISO-8601 timestamp
          */
         private String convertNvdTimestamp(String timestamp) {
+            var formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             try {
-                return new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS").parse(timestamp).toInstant().toString();
+                return formatter.parse(timestamp).toInstant().toString();
             } catch (ParseException e) {
-                // If failed to parse the timestamp, return 1970-01-01T00:00:00Z as an alternative.
-                return Instant.EPOCH.toString();
+                // If failed to parse the timestamp, return null as an alternative.
+                return null;
             }
         }
     }
