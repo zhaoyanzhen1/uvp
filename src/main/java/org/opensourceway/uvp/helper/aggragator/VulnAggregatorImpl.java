@@ -3,6 +3,7 @@ package org.opensourceway.uvp.helper.aggragator;
 import org.opensourceway.uvp.entity.Alias;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.OsvSchemaVersion;
+import org.opensourceway.uvp.enums.VulnSource;
 import org.opensourceway.uvp.utility.OsvEntityHelper;
 import org.opensourceway.uvp.utility.RegexUtil;
 import org.slf4j.Logger;
@@ -80,13 +81,21 @@ public class VulnAggregatorImpl implements VulnAggregator {
         vuln.setModified(vulns.stream().map(Vulnerability::getModified).filter(Objects::nonNull)
                 .max(Comparator.naturalOrder()).orElse(null));
         vuln.setPublished(vulns.stream().map(Vulnerability::getPublished).filter(Objects::nonNull)
-                .max(Comparator.naturalOrder()).orElse(null));
+                .min(Comparator.naturalOrder()).orElse(null));
         vuln.setWithdrawn(vulns.stream().map(Vulnerability::getWithdrawn).filter(Objects::nonNull)
-                .max(Comparator.naturalOrder()).orElse(null));
-        vuln.setSummary(vulns.stream().map(Vulnerability::getSummary).filter(Objects::nonNull)
-                .findFirst().orElse(null));
-        vuln.setDetail(vulns.stream().map(Vulnerability::getDetail).filter(Objects::nonNull)
-                .findFirst().orElse(null));
+                .min(Comparator.naturalOrder()).orElse(null));
+        vuln.setSummary(vulns.stream().filter(it -> VulnSource.NVD.equals(it.getSource())
+                        && Objects.nonNull(it.getSummary()))
+                .findAny().map(Vulnerability::getSummary)
+                .orElse(vulns.stream().filter(it -> Objects.nonNull(it.getSummary()))
+                        .max(Comparator.comparing(Vulnerability::getModified, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .map(Vulnerability::getSummary).orElse(null)));
+        vuln.setDetail(vulns.stream().filter(it -> VulnSource.NVD.equals(it.getSource())
+                        && Objects.nonNull(it.getDetail()))
+                .findAny().map(Vulnerability::getDetail)
+                .orElse(vulns.stream().filter(it -> Objects.nonNull(it.getDetail()))
+                        .max(Comparator.comparing(Vulnerability::getModified, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .map(Vulnerability::getDetail).orElse(null)));
         vuln.setDatabaseSpecific(vulns.stream().filter(it -> !ObjectUtils.isEmpty(it.getDatabaseSpecific()))
                 .collect(Collectors.toMap(it -> it.getSource().name(), Vulnerability::getDatabaseSpecific, (oldVal, newVal) -> newVal)));
         vuln.setSeverities(vulns.stream().filter(it -> !ObjectUtils.isEmpty(it.getSeverities()))
