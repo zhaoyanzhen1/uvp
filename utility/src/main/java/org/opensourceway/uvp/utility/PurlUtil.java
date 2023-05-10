@@ -77,8 +77,8 @@ public class PurlUtil {
     public static OsvPackage purlToOsvPackage(String purl) {
         var osvPackage = new OsvPackage();
         var packageUrl = newPurl(purl);
-        osvPackage.setPurl(newPurl(packageUrl.getType(), packageUrl.getNamespace(), packageUrl.getName(),
-                null, null, null).getCoordinates());
+        osvPackage.setPurl(canonicalize(newPurl(packageUrl.getType(), packageUrl.getNamespace(), packageUrl.getName(),
+                null, null, null)));
         osvPackage.setName(packageUrl.getName());
         osvPackage.setEcosystem(Ecosystem.findByPurlType(packageUrl.getType()));
         return osvPackage;
@@ -109,5 +109,9 @@ public class PurlUtil {
         } catch (InvalidPurlException e) {
             return false;
         }
+    }
+
+    public static String newGenericPurl(String packageName) {
+        return "pkg:%s/%s".formatted(PackageURL.StandardTypes.GENERIC, packageName);
     }
 }

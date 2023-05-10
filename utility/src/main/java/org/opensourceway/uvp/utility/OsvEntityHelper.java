@@ -144,7 +144,8 @@ public class OsvEntityHelper {
         var entity = new AffectedPackage();
         entity.setEcosystem(osvAffected.getPkg().getEcosystem());
         entity.setName(osvAffected.getPkg().getName());
-        entity.setPurl(osvAffected.getPkg().getPurl());
+        entity.setPurl(Objects.isNull(osvAffected.getPkg().getPurl()) ? PurlUtil.newGenericPurl(
+                osvAffected.getPkg().getName()) : osvAffected.getPkg().getPurl());
         entity.setVersions(Objects.isNull(osvAffected.getVersions()) ? new ArrayList<>() : osvAffected.getVersions());
         entity.setEcosystemSpecific(osvAffected.getEcosystemSpecific());
         entity.setDatabaseSpecific(osvAffected.getDatabaseSpecific());

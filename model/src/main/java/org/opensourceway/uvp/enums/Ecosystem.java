@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * https://osv-vulnerabilities.storage.googleapis.com/{ECOSYSTEM}/all.zip</a>
  */
 public enum Ecosystem {
-    UNKNOWN("Unknown", null, VersionType.ECOSYSTEM),
+    UNKNOWN("Unknown", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
     ALPINE("Alpine", "apk", VersionType.ECOSYSTEM),
 
@@ -100,29 +100,29 @@ public enum Ecosystem {
 
     RUBYGEMS("RubyGems", PackageURL.StandardTypes.GEM, VersionType.ECOSYSTEM),
 
-    LINUX("Linux", null, VersionType.ECOSYSTEM),
+    LINUX("Linux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ANDROID("Android", null, VersionType.ECOSYSTEM),
+    ANDROID("Android", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    GITHUB_ACTIONS("GitHub Actions", null, VersionType.ECOSYSTEM),
+    GITHUB_ACTIONS("GitHub Actions", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    GSD("GSD", null, VersionType.ECOSYSTEM),
+    GSD("GSD", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    UVI("UVI", null, VersionType.ECOSYSTEM),
+    UVI("UVI", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
     CONAN_CENTER("ConanCenter", "conan", VersionType.ECOSYSTEM),
 
-    ROCKY_LINUX("Rocky Linux", null, VersionType.ECOSYSTEM),
+    ROCKY_LINUX("Rocky Linux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ROCKY_LINUX_8("Rocky Linux:8", null, VersionType.ECOSYSTEM),
+    ROCKY_LINUX_8("Rocky Linux:8", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ROCKY_LINUX_9("Rocky Linux:9", null, VersionType.ECOSYSTEM),
+    ROCKY_LINUX_9("Rocky Linux:9", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ALMA_LINUX("AlmaLinux", null, VersionType.ECOSYSTEM),
+    ALMA_LINUX("AlmaLinux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ALMA_LINUX_8("AlmaLinux:8", null, VersionType.ECOSYSTEM),
+    ALMA_LINUX_8("AlmaLinux:8", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ALMA_LINUX_9("AlmaLinux:9", null, VersionType.ECOSYSTEM),
+    ALMA_LINUX_9("AlmaLinux:9", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
     ;
 
     private final String ecosystem;

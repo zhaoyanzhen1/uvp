@@ -5,13 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.clients.Vtopia;
 import org.opensourceway.uvp.clients.provider.converter.VulnConverter;
 import org.opensourceway.uvp.entity.Vulnerability;
-import org.opensourceway.uvp.enums.Ecosystem;
 import org.opensourceway.uvp.enums.OsvSchemaVersion;
 import org.opensourceway.uvp.enums.ReferenceType;
 import org.opensourceway.uvp.enums.ScoringSystem;
 import org.opensourceway.uvp.enums.VulnSource;
 import org.opensourceway.uvp.pojo.osv.OsvAffected;
-import org.opensourceway.uvp.pojo.osv.OsvPackage;
 import org.opensourceway.uvp.pojo.osv.OsvReference;
 import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
@@ -20,6 +18,7 @@ import org.opensourceway.uvp.pojo.vtopia.Impact;
 import org.opensourceway.uvp.pojo.vtopia.Reference;
 import org.opensourceway.uvp.pojo.vtopia.VtopiaVulnerability;
 import org.opensourceway.uvp.utility.OsvEntityHelper;
+import org.opensourceway.uvp.utility.PurlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -141,19 +140,11 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
         private OsvAffected toOsv(Map.Entry<String, Set<String>> affectedPackageWithVersions) {
             var osvAffected = new OsvAffected();
 
-            osvAffected.setPkg(toOsvPackage(affectedPackageWithVersions.getKey()));
+            osvAffected.setPkg(PurlUtil.purlToOsvPackage(PurlUtil.newGenericPurl(affectedPackageWithVersions.getKey())));
             osvAffected.setRanges(List.of());
             osvAffected.setVersions(affectedPackageWithVersions.getValue().stream().toList());
 
             return osvAffected;
-        }
-
-        private OsvPackage toOsvPackage(String packageName) {
-            var osvPackage = new OsvPackage();
-            osvPackage.setPurl(null);
-            osvPackage.setName(packageName);
-            osvPackage.setEcosystem(Ecosystem.UNKNOWN);
-            return osvPackage;
         }
 
         private List<OsvSeverity> toOsv(Impact impact) {
