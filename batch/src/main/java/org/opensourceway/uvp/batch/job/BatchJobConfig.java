@@ -66,11 +66,12 @@ public class BatchJobConfig {
                 .parallelStream()
                 .filter(it -> Objects.isNull(it.getStartTime()) ||
                         ChronoUnit.SECONDS.between(it.getStartTime(), LocalDateTime.now()) >= BatchConstant.DUMP_JOB_TIMEOUT)
+                .map(JobExecution::getId)
                 .forEach(this::stopRunningJob);
     }
 
-    private void stopRunningJob(JobExecution jobExecution) {
-        if (!jobOperator.getJobNames().contains(jobExecution.getJobInstance().getJobName())) {
+    private void stopRunningJob(long jobExecutionId) {
+        if (!jobOperator.getJobNames().contains(dumpVulnJob.getName())) {
             JobFactory jobFactory = new ReferenceJobFactory(dumpVulnJob);
             try {
                 jobRegistry.register(jobFactory);
@@ -80,15 +81,17 @@ public class BatchJobConfig {
         }
 
         try {
-            jobOperator.stop(jobExecution.getId());
-            logger.warn("Stop timeout job with job_execution_id: <{}>", jobExecution.getId());
+            jobOperator.stop(jobExecutionId);
+            logger.warn("Stop timeout job with job_execution_id: <{}>", jobExecutionId);
         } catch (Exception e) {
-            logger.warn("Failed to stop timeout job with job_execution_id: <{}>", jobExecution.getId(), e);
+            logger.warn("Failed to stop timeout job with job_execution_id: <{}>", jobExecutionId, e);
         }
 
+        var jobExecution = jobExplorer.getJobExecution(jobExecutionId);
         var now = LocalDateTime.now();
-        while (jobExecution.isRunning() &&
+        while (Objects.nonNull(jobExecution) && jobExecution.isRunning() &&
                 ChronoUnit.SECONDS.between(now, LocalDateTime.now()) <= BatchConstant.STOP_DUMP_JOB_TIMEOUT) {
+            jobExecution = jobExplorer.getJobExecution(jobExecutionId);
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException ignored) {
@@ -96,12 +99,12 @@ public class BatchJobConfig {
             }
         }
 
-        if (jobExecution.isStopping()) {
+        if (Objects.nonNull(jobExecution) && jobExecution.isStopping()) {
             try {
-                jobOperator.abandon(jobExecution.getId());
-                logger.warn("Abandon timeout job with job_execution_id: <{}>", jobExecution.getId());
+                jobOperator.abandon(jobExecutionId);
+                logger.warn("Abandon timeout job with job_execution_id: <{}>", jobExecutionId);
             } catch (Exception e) {
-                logger.warn("Failed to abandon timeout job with job_execution_id: <{}>", jobExecution.getId(), e);
+                logger.warn("Failed to abandon timeout job with job_execution_id: <{}>", jobExecutionId, e);
             }
         }
     }

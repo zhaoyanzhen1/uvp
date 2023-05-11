@@ -18,7 +18,7 @@ public class VulnAggregateReader implements ItemReader<List<String>> {
 
     private static final Logger logger = LoggerFactory.getLogger(VulnAggregateReader.class);
 
-    private static final int BATCH_SIZE = 10000;
+    private static final int BATCH_SIZE = 1000;
 
     private List<List<String>> vulnIdLists;
 
