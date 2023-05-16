@@ -15,8 +15,8 @@ public class UvpSearchCache {
         return CacheProperties.builder()
                 .cacheName(CacheConstant.UVP_SEARCH_CACHE)
                 .maximumCacheSize(1000L)
-                // 1 hour.
-                .expireAfterWrite(60 * 60L)
+                // 5 minutes.
+                .expireAfterWrite(5 * 60L)
                 .cacheNullValue(true)
                 .build();
     }
