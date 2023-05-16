@@ -186,6 +186,7 @@ public class OsvEntityHelper {
                 : osvRange.getEvents().stream()
                 .map(it -> toEntity(it, entity, osvRange.getEvents().indexOf(it)))
                 .filter(Objects::nonNull).collect(Collectors.toList()));
+        entity.setDatabaseSpecific(osvRange.getDatabaseSpecific());
         entity.setAffectedPackage(affectedPackage);
         return entity;
     }
@@ -411,6 +412,7 @@ public class OsvEntityHelper {
                 .map(it -> copyEntity(it, entity)).filter(Objects::nonNull)
                 .sorted(Comparator.comparing(AffectedEvent::getEventOrder))
                 .collect(Collectors.toList()));
+        entity.setDatabaseSpecific(old.getDatabaseSpecific());
         entity.setAffectedPackage(affectedPackage);
         return entity;
     }
