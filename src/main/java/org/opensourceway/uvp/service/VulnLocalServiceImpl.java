@@ -37,7 +37,7 @@ public class VulnLocalServiceImpl implements VulnLocalService {
     @Override
     public List<Vulnerability> query(String purl) {
         logger.info("Try to query vulns from local databases for <{}>.", purl);
-        var result = queryBySourceAndPurl(VulnSource.AGGREGATED, purl, true, null, null)
+        var result = queryBySourceAndPurl(VulnSource.UVP, purl, true, null, null)
                 .stream()
                 .toList();
         logger.info("End to query vulns from local databases, get <{}> vulns affecting <{}>.", result.size(), purl);
@@ -104,10 +104,10 @@ public class VulnLocalServiceImpl implements VulnLocalService {
 
         if (isValidPurl) {
             logger.info("Try to search vulns for purl <{}>, limit: <{}>, offset: <{}>.", keyword, limit, offset);
-            vulns = queryBySourceAndPurl(VulnSource.AGGREGATED, keyword, false, limit, offset);
+            vulns = queryBySourceAndPurl(VulnSource.UVP, keyword, false, limit, offset);
         } else {
             logger.info("Try to search vulns for keyword <{}>, limit: <{}>, offset: <{}>.", keyword, limit, offset);
-            vulns = vulnerabilityRepository.searchBySourceAndKeyword(VulnSource.AGGREGATED, keyword, limit, offset);
+            vulns = vulnerabilityRepository.searchBySourceAndKeyword(VulnSource.UVP, keyword, limit, offset);
         }
 
         logger.info("End to search vulns for request <{}>, limit: <{}>, offset: <{}>, get <{}> vulns.",
@@ -118,6 +118,6 @@ public class VulnLocalServiceImpl implements VulnLocalService {
     @Override
     public Vulnerability queryVulnDetail(String vulnId) {
         logger.info("Query details for vulnerability: <{}>", vulnId);
-        return vulnerabilityRepository.findBySourceAndVulnId(VulnSource.AGGREGATED, vulnId);
+        return vulnerabilityRepository.findBySourceAndVulnId(VulnSource.UVP, vulnId);
     }
 }

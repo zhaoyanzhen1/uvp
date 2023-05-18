@@ -207,15 +207,13 @@ public class AffectedPackage {
                 Objects.equals(name, that.name) &&
                 Objects.equals(purl, that.purl) &&
                 CollectionUtils.isEqualCollection(versions, that.versions) &&
-                Objects.equals(ecosystemSpecific, that.ecosystemSpecific) &&
-                Objects.equals(databaseSpecific, that.databaseSpecific) &&
                 CollectionUtils.isEqualCollection(ranges, that.ranges) &&
                 CollectionUtils.isEqualCollection(severities, that.severities);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ecosystem, name, purl, Set.copyOf(versions), ecosystemSpecific, databaseSpecific,
+        return Objects.hash(ecosystem, name, purl, Set.copyOf(versions),
                 Set.copyOf(ranges), Set.copyOf(severities));
     }
 }

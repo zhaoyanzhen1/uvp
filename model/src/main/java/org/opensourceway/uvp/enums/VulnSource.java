@@ -9,18 +9,18 @@ import java.util.Objects;
 
 public enum VulnSource {
     // Aggregated Vulnerabilities from open source databases.
-    AGGREGATED(VulnSourceCategory.AGGREGATED),
+    UVP(VulnSourceCategory.AGGREGATED, true),
 
     // Aggregated Vulnerabilities from open source and private databases.
-    AGGREGATED_WITH_PRIVATE(VulnSourceCategory.AGGREGATED),
+    UVP_ALL(VulnSourceCategory.AGGREGATED, true),
 
-    OSV(VulnSourceCategory.PUBLIC),
+    OSV(VulnSourceCategory.PUBLIC, false),
 
-    NVD(VulnSourceCategory.PUBLIC),
+    NVD(VulnSourceCategory.PUBLIC, false),
 
-    OSS_INDEX(VulnSourceCategory.PUBLIC),
+    OSS_INDEX(VulnSourceCategory.PUBLIC, false),
 
-    VTOPIA(VulnSourceCategory.PRIVATE),
+    VTOPIA(VulnSourceCategory.PRIVATE, true),
     ;
 
     /**
@@ -30,24 +30,43 @@ public enum VulnSource {
      */
     private final VulnSourceCategory category;
 
-    VulnSource(VulnSourceCategory category) {
+    private final boolean pushable;
+
+    VulnSource(VulnSourceCategory category, boolean pushable) {
         this.category = category;
+        this.pushable = pushable;
     }
 
     public VulnSourceCategory getCategory() {
         return category;
     }
 
-    public static List<VulnSource> getPublicSource() {
+    public boolean isPushable() {
+        return pushable;
+    }
+
+    public static List<VulnSource> getPublicSources() {
         return Arrays.stream(VulnSource.values())
                 .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory()))
                 .toList();
     }
 
-    public static List<VulnSource> getPublicAndPrivateSource() {
+    public static List<VulnSource> getPublicAndUnpushablePrivateSources() {
         return Arrays.stream(VulnSource.values())
                 .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory())
-                        || VulnSourceCategory.PRIVATE.equals(it.getCategory()))
+                        || (VulnSourceCategory.PRIVATE.equals(it.getCategory()) && !it.isPushable()))
+                .toList();
+    }
+
+    public static List<VulnSource> getPushableSources() {
+        return Arrays.stream(VulnSource.values())
+                .filter(VulnSource::isPushable)
+                .toList();
+    }
+
+    public static List<VulnSource> getUnpushableSources() {
+        return Arrays.stream(VulnSource.values())
+                .filter(it -> !it.isPushable())
                 .toList();
     }
 

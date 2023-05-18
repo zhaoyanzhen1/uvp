@@ -63,9 +63,10 @@ public class OsvProcessor implements ItemProcessor<String, List<Vulnerability>> 
                             .ifPresent(vulns::add);
                 }
             }
+            var upsertVulns = osvEntityHelper.batchSync(VulnSource.OSV, vulns);
 
             logger.info("End to download osv vulns for ecosystem: <{}>, number of vulns: <{}>.", ecosystem, vulns.size());
-            return vulns.stream().distinct().toList();
+            return upsertVulns;
         } catch (WebClientResponseException.NotFound e) {
             logger.warn("Osv bucket for ecosystem <{}> does not exist.", ecosystem);
             return List.of();

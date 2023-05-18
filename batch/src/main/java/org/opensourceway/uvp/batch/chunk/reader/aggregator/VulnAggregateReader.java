@@ -2,6 +2,7 @@ package org.opensourceway.uvp.batch.chunk.reader.aggregator;
 
 import org.apache.commons.collections4.ListUtils;
 import org.opensourceway.uvp.dao.VulnerabilityRepository;
+import org.opensourceway.uvp.enums.VulnSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemReader;
@@ -42,7 +43,8 @@ public class VulnAggregateReader implements ItemReader<List<String>> {
     private void initMapper() {
         logger.info("Query distinct vulnerability IDs.");
 
-        var vulnIds = vulnerabilityRepository.findDistinctUpsertOriginalVulnIds();
+        var vulnIds = vulnerabilityRepository.findDistinctUpsertUnpushableVulnIds(
+                VulnSource.getUnpushableSources().stream().map(Enum::name).toList());
         vulnIdLists = ListUtils.partition(vulnIds, BATCH_SIZE)
                 .stream()
                 .map(ArrayList::new)

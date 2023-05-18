@@ -61,7 +61,7 @@ public class PartialVulnProviderStep implements Tasklet {
                 .map(partialVulnMerger::merge)
                 .map(it -> osvEntityHelper.toVuln(partialVulnProvider.getVulnSource(), it))
                 .toList();
-        osvEntityHelper.batchUpsert(partialVulnProvider.getVulnSource(), vulns);
+        osvEntityHelper.batchUpsert(osvEntityHelper.batchSync(partialVulnProvider.getVulnSource(), vulns));
 
         logger.info("End to import vulnerabilities from <{}>", partialVulnProvider.getVulnSource());
         return RepeatStatus.FINISHED;

@@ -159,7 +159,7 @@
                 </step>
             </flow>
         </split>
-        <split id="aggregateVulns" task-executor="taskExecutor" next="updateStateOfOriginalVulns">
+        <split id="aggregateVulns" task-executor="taskExecutor" next="updateStateOfUnpushableVulns">
             <flow>
                 <step id="aggregatePublicVulns">
                     <tasklet>
@@ -174,14 +174,14 @@
                                 <beans:bean id="publicVulnAggregateProcessor"
                                             class="org.opensourceway.uvp.batch.chunk.processor.aggregator.VulnAggregateProcessor"
                                             scope="step">
-                                    <beans:constructor-arg value="true"/>
+                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="UVP"/>
                                 </beans:bean>
                             </processor>
                             <writer>
                                 <beans:bean id="publicVulnAggregateWriter"
                                             class="org.opensourceway.uvp.batch.chunk.writer.VulnWriter"
                                             scope="step">
-                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="AGGREGATED"/>
+                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="UVP"/>
                                 </beans:bean>
                             </writer>
                             <retryable-exception-classes>
@@ -205,14 +205,14 @@
                                 <beans:bean id="allVulnAggregateProcessor"
                                             class="org.opensourceway.uvp.batch.chunk.processor.aggregator.VulnAggregateProcessor"
                                             scope="step">
-                                    <beans:constructor-arg value="false"/>
+                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="UVP_ALL"/>
                                 </beans:bean>
                             </processor>
                             <writer>
                                 <beans:bean id="allVulnAggregateWriter"
                                             class="org.opensourceway.uvp.batch.chunk.writer.VulnWriter"
                                             scope="step">
-                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="AGGREGATED_WITH_PRIVATE"/>
+                                    <beans:constructor-arg type="org.opensourceway.uvp.enums.VulnSource" value="UVP_ALL"/>
                                 </beans:bean>
                             </writer>
                             <retryable-exception-classes>
@@ -223,8 +223,8 @@
                 </step>
             </flow>
         </split>
-        <step id="updateStateOfOriginalVulns">
-            <tasklet ref="updateStateOfOriginalVulnsStep"/>
+        <step id="updateStateOfUnpushableVulns">
+            <tasklet ref="updateStateOfUnpushableVulnsStep"/>
             <end on="*"/>
         </step>
     </job>
@@ -252,7 +252,7 @@
         <constructor-arg ref="ossIndexMerger"/>
     </bean>
 
-    <bean id="updateStateOfOriginalVulnsStep" class="org.opensourceway.uvp.batch.step.UpdateStateOfOriginalVulnsStep"/>
+    <bean id="updateStateOfUnpushableVulnsStep" class="org.opensourceway.uvp.batch.step.UpdateStateOfUnpushableVulnsStep"/>
 
     <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 </beans>

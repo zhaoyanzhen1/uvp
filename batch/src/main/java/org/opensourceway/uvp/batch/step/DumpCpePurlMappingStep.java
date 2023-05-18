@@ -3,6 +3,7 @@ package org.opensourceway.uvp.batch.step;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.dao.CpePurlRepository;
 import org.opensourceway.uvp.entity.CpePurl;
+import org.opensourceway.uvp.utility.PurlUtil;
 import org.opensourceway.uvp.utility.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,10 @@ public class DumpCpePurlMappingStep implements Tasklet {
 
     private static final String PURLS_YML = "purls.yml";
 
+    private static final List<String> OS_PURL_TYPE = List.of("rpm", "deb", "alpm", "apk");
+
+    private static final String OPENEULER_PURL_PATTERN = "pkg:rpm/openeuler/%s";
+
     @Value("${purl2cpe.dump.url}")
     private String purl2cpeDumpUrl;
 
@@ -63,8 +68,9 @@ public class DumpCpePurlMappingStep implements Tasklet {
                 } else if (entry.getName().endsWith(PURLS_YML)) {
                     var vendor = Path.of(entry.getName()).getParent().getFileName().toString();
                     var product = Path.of(entry.getName()).getParent().getParent().getFileName().toString();
-                    purlMap.put(Pair.of(vendor, product),
-                            new Yaml(new Constructor(Purls.class)).load(new ByteArrayInputStream(is.readAllBytes())));
+                    Purls purls = new Yaml(new Constructor(Purls.class)).load(new ByteArrayInputStream(is.readAllBytes()));
+                    purls.setPurls(enrichPurl(purls.getPurls()));
+                    purlMap.put(Pair.of(vendor, product), purls);
                 }
             }
         }
@@ -85,6 +91,14 @@ public class DumpCpePurlMappingStep implements Tasklet {
 
         logger.info("End to dump <{}> CPE-PURL mapping.", cpeMap.size());
         return RepeatStatus.FINISHED;
+    }
+
+    private static List<String> enrichPurl(List<String> purls) {
+        purls.stream()
+                .filter(it -> PurlUtil.isValidPurl(it) && OS_PURL_TYPE.contains(PurlUtil.newPurl(it).getType()))
+                .findAny()
+                .ifPresent(it -> purls.add(OPENEULER_PURL_PATTERN.formatted(PurlUtil.newPurl(it).getName())));
+        return purls;
     }
 
     public static class Cpes {

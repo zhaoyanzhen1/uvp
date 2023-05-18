@@ -29,7 +29,7 @@ public class VulnWriter implements ItemWriter<List<Vulnerability>> {
     public void write(@NotNull Chunk<? extends List<Vulnerability>> chunk) {
         logger.info("Start to persist batch vulns from <{}>", vulnSource);
         var vulns = chunk.getItems().stream().flatMap(List::stream).distinct().toList();
-        osvEntityHelper.batchUpsert(vulnSource, vulns);
+        osvEntityHelper.batchUpsert(vulns);
         logger.info("End to persist batch vulns from <{}>", vulnSource);
     }
 }

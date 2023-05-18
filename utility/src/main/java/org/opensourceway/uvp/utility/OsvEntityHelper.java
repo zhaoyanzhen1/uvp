@@ -24,6 +24,8 @@ import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
 import org.opensourceway.uvp.pojo.response.SearchResp;
 import org.opensourceway.uvp.pojo.response.VulnDetailResp;
+import org.opensourceway.uvp.pojo.vtopia.SpecificKey;
+import org.opensourceway.uvp.pojo.vtopia.UpdateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -595,9 +599,15 @@ public class OsvEntityHelper {
         return result;
     }
 
-    private Vulnerability update(Vulnerability existVuln, Vulnerability newVuln) {
+    private Vulnerability sync(Vulnerability existVuln, Vulnerability newVuln) {
         if (Objects.isNull(existVuln)) {
             newVuln.setInserted(true);
+            // Special logic for vulns from Vtopia.
+            if (UpdateType.UPDATE.equals(
+                    Optional.ofNullable(newVuln.getDatabaseSpecific()).orElse(Map.of()).get(SpecificKey.UPDATE_TYPE))) {
+                newVuln.setUpdated(true);
+                newVuln.setInserted(false);
+            }
             return newVuln;
         }
 
@@ -639,21 +649,31 @@ public class OsvEntityHelper {
     }
 
     /**
-     * Batch update existing vulnerabilities or insert new vulnerabilities.
+     * Batch sync generated vulns with existing vulns. Retain non-existing ones and update existing ones.
      *
-     * @param vulns new vulnerabilities.
+     * @param vulnSource source of the vulns.
+     * @param vulns      generated vulns.
+     * @return new vulns and updated existing vulns.
      */
-    public void batchUpsert(VulnSource vulnSource, List<Vulnerability> vulns) {
+    public List<Vulnerability> batchSync(VulnSource vulnSource, List<Vulnerability> vulns) {
         var existVulns = vulnerabilityRepository
                 .findBySourceAndVulnIds(vulnSource, vulns.stream().map(Vulnerability::getVulnId).toList())
                 .stream()
                 .collect(Collectors.toMap(Vulnerability::getVulnId, Function.identity()));
-        var newVulns = vulns.stream().map(it -> update(existVulns.get(it.getVulnId()), it))
+        return vulns.stream().map(it -> sync(existVulns.get(it.getVulnId()), it))
                 .filter(Objects::nonNull)
                 .toList();
-        if (!ObjectUtils.isEmpty(newVulns)) {
-            vulnerabilityRepository.saveAll(newVulns);
-            logger.info("Upsert <{}> vulns", newVulns.size());
+    }
+
+    /**
+     * Batch update existing vulnerabilities or insert new vulnerabilities.
+     *
+     * @param vulns vulnerabilities.
+     */
+    public void batchUpsert(List<Vulnerability> vulns) {
+        if (!ObjectUtils.isEmpty(vulns)) {
+            vulnerabilityRepository.saveAll(vulns);
+            logger.info("Upsert <{}> vulns", vulns.size());
         }
     }
 }

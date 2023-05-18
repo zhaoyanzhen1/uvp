@@ -25,28 +25,27 @@ public class VulnAggregateProcessor implements ItemProcessor<List<String>, List<
     @Autowired
     private OsvEntityHelper osvEntityHelper;
 
-    private final boolean publicOnly;
+    private final VulnSource vulnSource;
 
-    public VulnAggregateProcessor(boolean publicOnly) {
-        this.publicOnly = publicOnly;
+    public VulnAggregateProcessor(VulnSource vulnSource) {
+        this.vulnSource = vulnSource;
     }
 
     @Override
     public List<Vulnerability> process(List<String> vulnIds) {
-        logger.info("Start to aggregate <{}> vulns, public-only: {}.", vulnIds.size(), publicOnly);
+        logger.info("Start to aggregate <{}> vulns, source: {}.", vulnIds.size(), vulnSource);
 
-        var sources = (publicOnly ? VulnSource.getPublicSource() : VulnSource.getPublicAndPrivateSource())
-                .stream().map(Enum::name).toList();
+        var sources = (VulnSource.UVP.equals(vulnSource) ? VulnSource.getPublicSources()
+                : VulnSource.getPublicAndUnpushablePrivateSources()).stream().map(Enum::name).toList();
         var vulns = vulnerabilityRepository.findBySourcesAndVulnIds(sources, vulnIds);
         var aggregatedVulns = vulnAggregator.aggregate(vulns, vulnIds)
                 .stream()
-                .map(vuln -> osvEntityHelper.copyEntity(vuln,
-                        publicOnly ? VulnSource.AGGREGATED : VulnSource.AGGREGATED_WITH_PRIVATE))
-                .distinct()
+                .map(vuln -> osvEntityHelper.copyEntity(vuln, vulnSource))
                 .toList();
+        var upsertVulns = osvEntityHelper.batchSync(vulnSource, aggregatedVulns);
 
-        logger.info("End to aggregate <{}> vulns, public-only: {}, get <{}> vulns.",
-                vulnIds.size(), publicOnly, aggregatedVulns.size());
-        return aggregatedVulns;
+        logger.info("End to aggregate <{}> vulns, vulnSource: {}, get <{}> vulns.",
+                vulnIds.size(), vulnSource, aggregatedVulns.size());
+        return upsertVulns;
     }
 }

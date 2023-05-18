@@ -16,6 +16,7 @@ import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
 import org.opensourceway.uvp.pojo.vtopia.Description;
 import org.opensourceway.uvp.pojo.vtopia.Impact;
 import org.opensourceway.uvp.pojo.vtopia.Reference;
+import org.opensourceway.uvp.pojo.vtopia.SpecificKey;
 import org.opensourceway.uvp.pojo.vtopia.VtopiaVulnerability;
 import org.opensourceway.uvp.utility.OsvEntityHelper;
 import org.opensourceway.uvp.utility.PurlUtil;
@@ -31,6 +32,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,11 +76,11 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
                     .stream()
                     .map(converter::convert)
                     .map(it -> osvEntityHelper.toVuln(VulnSource.VTOPIA, it))
-                    .distinct()
                     .toList();
+            var upsertVulns = osvEntityHelper.batchSync(VulnSource.VTOPIA, vulns);
 
             logger.info("End to process Vtopia CVE.");
-            return vulns;
+            return upsertVulns;
         } catch (Exception e) {
             logger.warn("Exception occurs when process Vtopia CVE.", e);
             throw new RuntimeException(e);
@@ -103,8 +105,8 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
             osv.setReferences(Objects.isNull(vuln.getReferenceData()) ? null
                     : vuln.getReferenceData().stream().map(this::toOsv).filter(Objects::nonNull).distinct().toList());
             osv.setCredits(null);
+            osv.setDatabaseSpecific(toOsv(vuln));
 
-            osv.setCredits(null);
             return osv;
         }
 
@@ -213,6 +215,20 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
                     return null;
                 }
             }
+        }
+
+        private Map<Object, Object> toOsv(VtopiaVulnerability vuln) {
+            var databaseSpecific = new HashMap<>();
+
+            if (!ObjectUtils.isEmpty(vuln.getPatch())) {
+                databaseSpecific.put(SpecificKey.PATCH, vuln.getPatch());
+            }
+
+            if (Objects.nonNull(vuln.getUpdateType())) {
+                databaseSpecific.put(SpecificKey.UPDATE_TYPE, vuln.getUpdateType());
+            }
+
+            return databaseSpecific;
         }
     }
 }

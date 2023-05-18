@@ -137,12 +137,11 @@ public class AffectedRange {
         AffectedRange that = (AffectedRange) o;
         return type == that.type &&
                 Objects.equals(repo, that.repo) &&
-                Objects.equals(databaseSpecific, that.databaseSpecific) &&
                 CollectionUtils.isEqualCollection(events, that.events);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, repo, databaseSpecific, Set.copyOf(events));
+        return Objects.hash(type, repo, Set.copyOf(events));
     }
 }

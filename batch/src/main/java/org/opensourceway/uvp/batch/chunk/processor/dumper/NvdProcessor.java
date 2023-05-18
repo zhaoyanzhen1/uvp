@@ -93,11 +93,11 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
                     .map(NvdCveWrapper::cve)
                     .map(converter::convert)
                     .map(it -> osvEntityHelper.toVuln(VulnSource.NVD, it))
-                    .distinct()
                     .toList();
+            var upsertVulns = osvEntityHelper.batchSync(VulnSource.NVD, vulns);
 
             logger.info("End to process NVD CVE.");
-            return vulns;
+            return upsertVulns;
         } catch (Exception e) {
             logger.warn("Exception occurs when process NVD CVE.", e);
             throw new RuntimeException(e);
@@ -202,10 +202,11 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
 
         private List<String> getVersionsFromCpe(List<String> cpeNames) {
             // TODO Expand versions from Starting and Ending
-            return cpeNames.stream().map(this::getVersionFromCpe).filter(Objects::nonNull).distinct().toList();
+            return cpeNames.stream().map(this::getVersionFromCpe).filter(Objects::nonNull)
+                    .flatMap(List::stream).distinct().toList();
         }
 
-        private String getVersionFromCpe(String cpe) {
+        private List<String> getVersionFromCpe(String cpe) {
             try {
                 var cpeObj = CpeParser.parse(cpe);
                 if (Arrays.stream(LogicalValue.values()).map(LogicalValue::getAbbreviation).toList()
@@ -214,9 +215,13 @@ public class NvdProcessor implements ItemProcessor<Integer, List<Vulnerability>>
                 }
                 if (Arrays.stream(LogicalValue.values()).map(LogicalValue::getAbbreviation).toList()
                         .contains(cpeObj.getUpdate())) {
-                    return cpeObj.getVersion();
+                    return List.of(cpeObj.getVersion());
                 }
-                return "%s-%s".formatted(cpeObj.getVersion(), cpeObj.getUpdate());
+                return List.of(
+                        "%s%s".formatted(cpeObj.getVersion(), cpeObj.getUpdate()),
+                        "%s.%s".formatted(cpeObj.getVersion(), cpeObj.getUpdate()),
+                        "%s-%s".formatted(cpeObj.getVersion(), cpeObj.getUpdate())
+                );
             } catch (CpeParsingException e) {
                 // The exception should not be thrown.
                 logger.warn("Invalid CPE: <{}>", cpe);
