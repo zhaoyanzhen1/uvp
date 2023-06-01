@@ -12,8 +12,10 @@ ON CONFLICT (source) DO NOTHING;
 
 -- The job names MUST be the same as those defined in QuartzJobEnum.java
 INSERT INTO quartz_job_config(job, cron) VALUES
-('DUMP_VULN_JOB', '0 0 */1 * * ? *'),
-('CAPTURE_CRON_JOB', '*/10 * * * * ? *')
+('DUMP_VULN_JOB', '0 0 * * * ? *'),
+('CAPTURE_CRON_JOB', '*/10 * * * * ? *'),
+('RECORD_VULN_FOR_PUSH_JOB', '0 * * * * ? *'),
+('PUSH_VULN_JOB', '30 * * * * ? *')
 ON CONFLICT (job) DO NOTHING;
 
 -- Create gin indexes to speed up 'LIKE' condition filter.

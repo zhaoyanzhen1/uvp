@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":batch"))
     implementation(project(":utility"))
+    implementation(project(":interface"))
 
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")

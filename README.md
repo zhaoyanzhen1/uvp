@@ -21,6 +21,7 @@ It's written in Java 17 and built with Gradle.
 - [Using UVP](#using-uvp)
     - [Viewing the Website](#viewing-the-website)
     - [Using the API](#using-the-api)
+    - [Subscription](docs/subscription.md)
 
 # UVP - Unified Vulnerability Platform
 

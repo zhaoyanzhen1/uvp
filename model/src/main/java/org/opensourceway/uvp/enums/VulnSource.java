@@ -6,6 +6,7 @@ import jakarta.persistence.Converter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public enum VulnSource {
     // Aggregated Vulnerabilities from open source databases.
@@ -37,6 +38,52 @@ public enum VulnSource {
         this.pushable = pushable;
     }
 
+    private static final List<VulnSource> PUBLIC_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory()))
+            .toList();
+
+    private static final List<VulnSource> PUBLIC_OR_UNPUSHABLE_PRIVATE_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory())
+                    || (VulnSourceCategory.PRIVATE.equals(it.getCategory()) && !it.isPushable()))
+            .toList();
+
+    private static final List<VulnSource> PUSHABLE_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(VulnSource::isPushable)
+            .toList();
+
+    private static final List<VulnSource> UNPUSHABLE_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(Predicate.not(VulnSource::isPushable))
+            .toList();
+
+    private static final List<VulnSource> PUBLIC_PUSHABLE_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(VulnSource::isPushable)
+            .filter(source -> Objects.equals(source.category, VulnSourceCategory.PUBLIC)
+                    || Objects.equals(VulnSource.UVP, source))
+            .toList();
+
+    private static final List<VulnSource> PRIVATE_PUSHABLE_SOURCES = Arrays.stream(VulnSource.values())
+            .filter(VulnSource::isPushable)
+            .filter(source -> Objects.equals(source.category, VulnSourceCategory.PUBLIC)
+                    || Objects.equals(source.category, VulnSourceCategory.PRIVATE)
+                    || Objects.equals(VulnSource.UVP_ALL, source))
+            .toList();
+
+    public static List<VulnSource> getPublicSources() {
+        return PUBLIC_SOURCES;
+    }
+
+    public static List<VulnSource> getPublicOrUnpushablePrivateSources() {
+        return PUBLIC_OR_UNPUSHABLE_PRIVATE_SOURCES;
+    }
+
+    public static List<VulnSource> getPushableSources() {
+        return PUSHABLE_SOURCES;
+    }
+
+    public static List<VulnSource> getUnpushableSources() {
+        return UNPUSHABLE_SOURCES;
+    }
+
     public VulnSourceCategory getCategory() {
         return category;
     }
@@ -45,29 +92,16 @@ public enum VulnSource {
         return pushable;
     }
 
-    public static List<VulnSource> getPublicSources() {
-        return Arrays.stream(VulnSource.values())
-                .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory()))
-                .toList();
+    public boolean isPublicPushable() {
+        return PUBLIC_PUSHABLE_SOURCES.contains(this);
     }
 
-    public static List<VulnSource> getPublicAndUnpushablePrivateSources() {
-        return Arrays.stream(VulnSource.values())
-                .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory())
-                        || (VulnSourceCategory.PRIVATE.equals(it.getCategory()) && !it.isPushable()))
-                .toList();
+    public boolean isPrivatePushable() {
+        return PRIVATE_PUSHABLE_SOURCES.contains(this);
     }
 
-    public static List<VulnSource> getPushableSources() {
-        return Arrays.stream(VulnSource.values())
-                .filter(VulnSource::isPushable)
-                .toList();
-    }
-
-    public static List<VulnSource> getUnpushableSources() {
-        return Arrays.stream(VulnSource.values())
-                .filter(it -> !it.isPushable())
-                .toList();
+    public VulnSource unifyPushSource() {
+        return Objects.equals(VulnSource.UVP_ALL, this) ? VulnSource.UVP : this;
     }
 
     @Converter(autoApply = true)

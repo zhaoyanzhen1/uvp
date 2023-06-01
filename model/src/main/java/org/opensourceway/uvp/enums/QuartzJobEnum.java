@@ -6,9 +6,13 @@ import jakarta.persistence.Converter;
 import java.util.Objects;
 
 public enum QuartzJobEnum {
-    DUMP_VULN_JOB("0 0 2 * * ? *"),
+    DUMP_VULN_JOB("0 0 * * * ? *"),
 
     CAPTURE_CRON_JOB("*/10 * * * * ? *"),
+
+    RECORD_VULN_FOR_PUSH_JOB("0 * * * * ? *"),
+
+    PUSH_VULN_JOB("30 * * * * ? *"),
     ;
 
     private final String defaultCron;

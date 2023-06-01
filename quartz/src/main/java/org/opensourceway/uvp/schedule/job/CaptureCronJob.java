@@ -75,12 +75,12 @@ public class CaptureCronJob extends QuartzJobBean {
             var trigger = builder.withSchedule(CronScheduleBuilder.cronSchedule(newCron)).build();
             scheduler.rescheduleJob(oldTrigger.getKey(), trigger);
         } catch (Exception e) {
-            // If failed to change import cron, former trigger will be kept.
+            // If failed to change cron, former trigger will be kept.
             logger.warn("Failed to change cron for <{}> from <{}> to <{}>", job, oldCron, newCron);
             return;
         }
 
         jobToCron.put(job, newCron);
-        logger.info("Import cron for <{}> is changed from <{}> to <{}>", job, oldCron, newCron);
+        logger.info("Cron for <{}> is changed from <{}> to <{}>", job, oldCron, newCron);
     }
 }

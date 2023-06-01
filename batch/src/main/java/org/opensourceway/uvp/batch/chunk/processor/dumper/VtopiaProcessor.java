@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.clients.Vtopia;
 import org.opensourceway.uvp.clients.provider.converter.VulnConverter;
+import org.opensourceway.uvp.constant.SpecificKey;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.OsvSchemaVersion;
 import org.opensourceway.uvp.enums.ReferenceType;
@@ -16,7 +17,6 @@ import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
 import org.opensourceway.uvp.pojo.vtopia.Description;
 import org.opensourceway.uvp.pojo.vtopia.Impact;
 import org.opensourceway.uvp.pojo.vtopia.Reference;
-import org.opensourceway.uvp.pojo.vtopia.SpecificKey;
 import org.opensourceway.uvp.pojo.vtopia.VtopiaVulnerability;
 import org.opensourceway.uvp.utility.OsvEntityHelper;
 import org.opensourceway.uvp.utility.PurlUtil;
@@ -224,8 +224,8 @@ public class VtopiaProcessor implements ItemProcessor<Integer, List<Vulnerabilit
                 databaseSpecific.put(SpecificKey.PATCH, vuln.getPatch());
             }
 
-            if (Objects.nonNull(vuln.getUpdateType())) {
-                databaseSpecific.put(SpecificKey.UPDATE_TYPE, vuln.getUpdateType());
+            if (Objects.nonNull(vuln.getPushType())) {
+                databaseSpecific.put(SpecificKey.PUSH_TYPE, vuln.getPushType());
             }
 
             return databaseSpecific;

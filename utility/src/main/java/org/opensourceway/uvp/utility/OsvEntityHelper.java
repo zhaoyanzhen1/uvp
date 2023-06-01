@@ -2,6 +2,7 @@ package org.opensourceway.uvp.utility;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opensourceway.uvp.constant.OsvConstant;
+import org.opensourceway.uvp.constant.SpecificKey;
 import org.opensourceway.uvp.dao.VulnerabilityRepository;
 import org.opensourceway.uvp.entity.AffectedEvent;
 import org.opensourceway.uvp.entity.AffectedPackage;
@@ -13,6 +14,7 @@ import org.opensourceway.uvp.entity.Severity;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.CvssSeverity;
 import org.opensourceway.uvp.enums.EventType;
+import org.opensourceway.uvp.enums.PushType;
 import org.opensourceway.uvp.enums.VulnSource;
 import org.opensourceway.uvp.pojo.osv.OsvAffected;
 import org.opensourceway.uvp.pojo.osv.OsvCredit;
@@ -24,8 +26,6 @@ import org.opensourceway.uvp.pojo.osv.OsvSeverity;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
 import org.opensourceway.uvp.pojo.response.SearchResp;
 import org.opensourceway.uvp.pojo.response.VulnDetailResp;
-import org.opensourceway.uvp.pojo.vtopia.SpecificKey;
-import org.opensourceway.uvp.pojo.vtopia.UpdateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -603,8 +603,8 @@ public class OsvEntityHelper {
         if (Objects.isNull(existVuln)) {
             newVuln.setInserted(true);
             // Special logic for vulns from Vtopia.
-            if (UpdateType.UPDATE.equals(
-                    Optional.ofNullable(newVuln.getDatabaseSpecific()).orElse(Map.of()).get(SpecificKey.UPDATE_TYPE))) {
+            if (PushType.UPDATE.equals(
+                    Optional.ofNullable(newVuln.getDatabaseSpecific()).orElse(Map.of()).get(SpecificKey.PUSH_TYPE))) {
                 newVuln.setUpdated(true);
                 newVuln.setInserted(false);
             }
