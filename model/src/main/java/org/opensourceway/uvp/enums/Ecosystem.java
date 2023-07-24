@@ -22,6 +22,12 @@ import java.util.stream.Collectors;
 public enum Ecosystem {
     UNKNOWN("Unknown", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
+    ALMA_LINUX("AlmaLinux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
+    ALMA_LINUX_8("AlmaLinux:8", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
+    ALMA_LINUX_9("AlmaLinux:9", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
     ALPINE("Alpine", "apk", VersionType.ECOSYSTEM),
 
     ALPINE_3_2("Alpine:v3.2", "apk", VersionType.ECOSYSTEM),
@@ -56,6 +62,12 @@ public enum Ecosystem {
 
     ALPINE_3_17("Alpine:v3.17", "apk", VersionType.ECOSYSTEM),
 
+    ALPINE_3_18("Alpine:v3.18", "apk", VersionType.ECOSYSTEM),
+
+    ANDROID("Android", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
+    CONAN_CENTER("ConanCenter", "conan", VersionType.ECOSYSTEM),
+
     CRATES_IO("crates.io", PackageURL.StandardTypes.CARGO, VersionType.SEMVER),
 
     DEBIAN("Debian", PackageURL.StandardTypes.DEBIAN, VersionType.ECOSYSTEM),
@@ -80,9 +92,19 @@ public enum Ecosystem {
 
     DEBIAN_11("Debian:11", PackageURL.StandardTypes.DEBIAN, VersionType.ECOSYSTEM),
 
+    DEBIAN_12("Debian:12", PackageURL.StandardTypes.DEBIAN, VersionType.ECOSYSTEM),
+
+    GSD("GSD", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
+    GITHUB_ACTIONS("GitHub Actions", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+
     GO("Go", PackageURL.StandardTypes.GOLANG, VersionType.SEMVER),
 
+    HACKAGE("Hackage", "hackage", VersionType.ECOSYSTEM),
+
     HEX("Hex", PackageURL.StandardTypes.HEX, VersionType.SEMVER),
+
+    LINUX("Linux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
     MAVEN("Maven", PackageURL.StandardTypes.MAVEN, VersionType.ECOSYSTEM),
 
@@ -98,31 +120,15 @@ public enum Ecosystem {
 
     PYPI("PyPI", PackageURL.StandardTypes.PYPI, VersionType.ECOSYSTEM),
 
-    RUBYGEMS("RubyGems", PackageURL.StandardTypes.GEM, VersionType.ECOSYSTEM),
-
-    LINUX("Linux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    ANDROID("Android", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    GITHUB_ACTIONS("GitHub Actions", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    GSD("GSD", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    UVI("UVI", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    CONAN_CENTER("ConanCenter", "conan", VersionType.ECOSYSTEM),
-
     ROCKY_LINUX("Rocky Linux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
     ROCKY_LINUX_8("Rocky Linux:8", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
     ROCKY_LINUX_9("Rocky Linux:9", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
 
-    ALMA_LINUX("AlmaLinux", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+    RUBYGEMS("RubyGems", PackageURL.StandardTypes.GEM, VersionType.ECOSYSTEM),
 
-    ALMA_LINUX_8("AlmaLinux:8", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
-
-    ALMA_LINUX_9("AlmaLinux:9", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
+    UVI("UVI", PackageURL.StandardTypes.GENERIC, VersionType.ECOSYSTEM),
     ;
 
     private final String ecosystem;

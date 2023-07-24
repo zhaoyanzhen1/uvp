@@ -1,5 +1,6 @@
 package org.opensourceway.uvp.batch.chunk.processor.dumper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.opensourceway.uvp.entity.Vulnerability;
@@ -57,6 +58,7 @@ public class OsvProcessor implements ItemProcessor<String, List<Vulnerability>> 
             try (ZipInputStream is = new ZipInputStream(webUtil.getFileContext(url, Duration.ofSeconds(120))
                     .asInputStream(true))) {
                 var mapper = new ObjectMapper();
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 while (is.getNextEntry() != null) {
                     Optional.ofNullable(osvEntityHelper.toVuln(VulnSource.OSV,
                                     mapper.readValue(new ByteArrayInputStream(is.readAllBytes()), OsvVulnerability.class)))
