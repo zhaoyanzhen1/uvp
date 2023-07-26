@@ -27,4 +27,7 @@ create index if not exists ap_purl_trgm_idx on affected_package using gin (purl 
 create index if not exists vuln_vuln_id_trgm_idx on vulnerability using gin (vuln_id gin_trgm_ops);
 create index if not exists alias_alias_trgm_idx on alias using gin (alias gin_trgm_ops);
 
+ALTER TABLE vulnerability SET (autovacuum_analyze_scale_factor = 0.005);
+ALTER TABLE vulnerability SET (autovacuum_vacuum_scale_factor = 0.005);
+
 COMMIT;
