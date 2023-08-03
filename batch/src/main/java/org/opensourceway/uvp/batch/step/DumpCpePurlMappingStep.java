@@ -38,7 +38,7 @@ public class DumpCpePurlMappingStep implements Tasklet {
 
     private static final List<String> OS_PURL_TYPE = List.of("rpm", "deb", "alpm", "apk");
 
-    private static final String OPENEULER_PURL_PATTERN = "pkg:rpm/openeuler/%s";
+    private static final String GENERIC_PURL_PATTERN = "pkg:generic/%s";
 
     @Value("${purl2cpe.dump.url}")
     private String purl2cpeDumpUrl;
@@ -97,7 +97,7 @@ public class DumpCpePurlMappingStep implements Tasklet {
         purls.stream()
                 .filter(it -> PurlUtil.isValidPurl(it) && OS_PURL_TYPE.contains(PurlUtil.newPurl(it).getType()))
                 .findAny()
-                .ifPresent(it -> purls.add(OPENEULER_PURL_PATTERN.formatted(PurlUtil.newPurl(it).getName())));
+                .ifPresent(it -> purls.add(GENERIC_PURL_PATTERN.formatted(PurlUtil.newPurl(it).getName())));
         return purls;
     }
 
