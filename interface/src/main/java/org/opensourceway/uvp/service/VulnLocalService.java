@@ -1,6 +1,7 @@
 package org.opensourceway.uvp.service;
 
 import org.opensourceway.uvp.entity.Vulnerability;
+import org.opensourceway.uvp.enums.VulnSource;
 
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,29 @@ public interface VulnLocalService {
     List<Vulnerability> query(String purl);
 
     /**
+     * Query vulnerabilities that affect the given package from local vuln databases.
+     *
+     * @param purl Package URL.
+     * @param source Vulnerability source.
+     * @return A list of vulnerabilities that affect the given PURL.
+     */
+    List<Vulnerability> query(String purl, VulnSource source);
+
+    /**
      * Batch query vulnerabilities that affect the given packages from local vuln databases.
      *
      * @param purls A list of Package URLs.
      * @return PURLs and their corresponding affecting vulnerabilities.
      */
     Map<String, List<Vulnerability>> queryBatch(List<String> purls);
+
+    /**
+     * Batch query vulnerabilities that affect the given packages from local vuln databases.
+     *
+     * @param purls A list of Package URLs.
+     * @return PURLs and their corresponding affecting vulnerabilities.
+     */
+    Map<String, List<Vulnerability>> queryBatchV2(List<String> purls);
 
     /**
      * Search vulnerabilities by the given parameters.

@@ -36,8 +36,13 @@ public class VulnLocalServiceImpl implements VulnLocalService {
 
     @Override
     public List<Vulnerability> query(String purl) {
+        return query(purl, VulnSource.UVP);
+    }
+
+    @Override
+    public List<Vulnerability> query(String purl, VulnSource source) {
         logger.info("Try to query vulns from local databases for <{}>.", purl);
-        var result = queryBySourceAndPurl(VulnSource.UVP, purl, true, null, null)
+        var result = queryBySourceAndPurl(source, purl, true, null, null)
                 .stream()
                 .toList();
         logger.info("End to query vulns from local databases, get <{}> vulns affecting <{}>.", result.size(), purl);
@@ -89,6 +94,17 @@ public class VulnLocalServiceImpl implements VulnLocalService {
         logger.info("Try to batch query vulns from local databases for <{}>.", purls);
 
         var result = purls.stream().collect(Collectors.toMap(Function.identity(), this::query));
+
+        logger.info("End to batch query vulns from local databases for <{}>, get <{}> vulns.",
+                purls, result.values().stream().mapToLong(List::size).sum());
+        return result;
+    }
+
+    @Override
+    public Map<String, List<Vulnerability>> queryBatchV2(List<String> purls) {
+        logger.info("Try to batch query vulns from local databases for <{}>.", purls);
+
+        var result = purls.stream().collect(Collectors.toMap(Function.identity(), it -> query(it, VulnSource.UVP_ALL)));
 
         logger.info("End to batch query vulns from local databases for <{}>, get <{}> vulns.",
                 purls, result.values().stream().mapToLong(List::size).sum());

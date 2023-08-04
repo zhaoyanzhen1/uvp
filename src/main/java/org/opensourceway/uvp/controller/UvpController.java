@@ -170,6 +170,36 @@ public class UvpController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    @PostMapping(value = "/queryBatchV2", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<?> queryBatchV2(@RequestBody List<String> purls) {
+        logger.info("Batch query vulns by: <{}>", purls);
+
+        if (purls.size() > UvpConstant.QUERY_BATCH_LIMIT) {
+            var errorMessage = "Query size <%s> exceeds the threshold <%s>"
+                    .formatted(purls.size(), UvpConstant.QUERY_BATCH_LIMIT);
+            logger.error(errorMessage);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Error(ErrorCode.QUERY_SIZE_EXCEEDS, errorMessage));
+        }
+
+        List<PackageVulns> result;
+        try {
+            result = uvpService.queryBatchV2(purls);
+        } catch (InvalidPurlException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Error(ErrorCode.INVALID_PURL, e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unknown error occurs", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Error(ErrorCode.UNKNOWN, "Unknown error"));
+        }
+
+        logger.info("Batch query successfully, get <{}> vulns for <{}> purls.",
+                result.stream().map(PackageVulns::vulns).mapToLong(List::size).sum(), purls.size());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
     @Hidden
     @PostMapping("/importBatch")
     public @ResponseBody ResponseEntity<?> importBatch(@RequestBody List<String> purls) {

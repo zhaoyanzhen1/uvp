@@ -26,6 +26,14 @@ public interface UvpService {
     List<PackageVulns> queryBatch(List<String> purls);
 
     /**
+     * Batch query vulnerabilities that affect the given packages from local database.
+     *
+     * @param purls A list of Package URLs.
+     * @return A list whose element consists of each given package and its affected vulnerabilities.
+     */
+    List<PackageVulns> queryBatchV2(List<String> purls);
+
+    /**
      * Batch import purls to local database.
      *
      * @param purls A list of Package URLs.

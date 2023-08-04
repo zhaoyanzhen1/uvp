@@ -56,6 +56,18 @@ public class UvpServiceImpl implements UvpService {
     }
 
     @Override
+    public List<PackageVulns> queryBatchV2(List<String> purls) {
+        purls = purls.stream().distinct().toList();
+        PurlUtil.validate(purls);
+
+        return vulnLocalService.queryBatchV2(purls).entrySet()
+                .stream()
+                .map(entry -> new PackageVulns(entry.getKey(), entry.getValue()
+                        .stream().map(osvEntityHelper::toVo).toList()))
+                .toList();
+    }
+
+    @Override
     public void importBatch(List<String> purls) {
         purls = purls.stream().distinct().collect(Collectors.toList());
         PurlUtil.validate(purls);
