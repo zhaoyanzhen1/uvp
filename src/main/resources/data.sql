@@ -29,5 +29,11 @@ create index if not exists alias_alias_trgm_idx on alias using gin (alias gin_tr
 
 ALTER TABLE vulnerability SET (autovacuum_analyze_scale_factor = 0.005);
 ALTER TABLE vulnerability SET (autovacuum_vacuum_scale_factor = 0.005);
+ALTER TABLE affected_package SET (autovacuum_analyze_scale_factor = 0.005);
+ALTER TABLE affected_package SET (autovacuum_vacuum_scale_factor = 0.005);
+ALTER TABLE affected_range SET (autovacuum_analyze_scale_factor = 0.005);
+ALTER TABLE affected_range SET (autovacuum_vacuum_scale_factor = 0.005);
+ALTER TABLE affected_event SET (autovacuum_analyze_scale_factor = 0.005);
+ALTER TABLE affected_event SET (autovacuum_vacuum_scale_factor = 0.005);
 
 COMMIT;
