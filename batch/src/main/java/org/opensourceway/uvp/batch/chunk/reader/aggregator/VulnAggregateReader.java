@@ -43,8 +43,8 @@ public class VulnAggregateReader implements ItemReader<List<String>> {
     private void initMapper() {
         logger.info("Query distinct vulnerability IDs.");
 
-        var vulnIds = vulnerabilityRepository.findDistinctUpsertUnpushableVulnIds(
-                VulnSource.getUnpushableSources().stream().map(Enum::name).toList());
+        var vulnIds = vulnerabilityRepository.findDistinctUpsertVulnIds(
+                VulnSource.getPublicOrPrivateSources().stream().map(Enum::name).toList());
         vulnIdLists = ListUtils.partition(vulnIds, BATCH_SIZE)
                 .stream()
                 .map(ArrayList::new)

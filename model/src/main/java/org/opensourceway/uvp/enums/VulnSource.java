@@ -42,9 +42,9 @@ public enum VulnSource {
             .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory()))
             .toList();
 
-    private static final List<VulnSource> PUBLIC_OR_UNPUSHABLE_PRIVATE_SOURCES = Arrays.stream(VulnSource.values())
+    private static final List<VulnSource> PUBLIC_OR_PRIVATE_SOURCES = Arrays.stream(VulnSource.values())
             .filter(it -> VulnSourceCategory.PUBLIC.equals(it.getCategory())
-                    || (VulnSourceCategory.PRIVATE.equals(it.getCategory()) && !it.isPushable()))
+                    || (VulnSourceCategory.PRIVATE.equals(it.getCategory())))
             .toList();
 
     private static final List<VulnSource> PUSHABLE_SOURCES = Arrays.stream(VulnSource.values())
@@ -72,8 +72,8 @@ public enum VulnSource {
         return PUBLIC_SOURCES;
     }
 
-    public static List<VulnSource> getPublicOrUnpushablePrivateSources() {
-        return PUBLIC_OR_UNPUSHABLE_PRIVATE_SOURCES;
+    public static List<VulnSource> getPublicOrPrivateSources() {
+        return PUBLIC_OR_PRIVATE_SOURCES;
     }
 
     public static List<VulnSource> getPushableSources() {

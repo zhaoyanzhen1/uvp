@@ -36,7 +36,7 @@ public class VulnAggregateProcessor implements ItemProcessor<List<String>, List<
         logger.info("Start to aggregate <{}> vulns, source: {}.", vulnIds.size(), vulnSource);
 
         var sources = (VulnSource.UVP.equals(vulnSource) ? VulnSource.getPublicSources()
-                : VulnSource.getPublicOrUnpushablePrivateSources()).stream().map(Enum::name).toList();
+                : VulnSource.getPublicOrPrivateSources()).stream().map(Enum::name).toList();
         var vulns = vulnerabilityRepository.findBySourcesAndVulnIds(sources, vulnIds);
         var aggregatedVulns = vulnAggregator.aggregate(vulns, vulnIds)
                 .stream()
