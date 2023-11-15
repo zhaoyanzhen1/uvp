@@ -1,5 +1,6 @@
 package org.opensourceway.uvp.service;
 
+import org.opensourceway.uvp.entity.Severity;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.VulnSource;
 
@@ -18,6 +19,9 @@ public interface VulnLocalService {
      */
     List<Vulnerability> query(String purl);
 
+    Map<String, Object> queryDetail(String startTime, String endTime);
+
+    List<Severity> queryScore(List<String> vulnId);
     /**
      * Query vulnerabilities that affect the given package from local vuln databases.
      *

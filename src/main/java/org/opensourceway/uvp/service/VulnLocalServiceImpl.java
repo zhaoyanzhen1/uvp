@@ -4,6 +4,7 @@ import org.opensourceway.uvp.dao.VulnerabilityRepository;
 import org.opensourceway.uvp.entity.AffectedEvent;
 import org.opensourceway.uvp.entity.AffectedPackage;
 import org.opensourceway.uvp.entity.AffectedRange;
+import org.opensourceway.uvp.entity.Severity;
 import org.opensourceway.uvp.entity.Vulnerability;
 import org.opensourceway.uvp.enums.Ecosystem;
 import org.opensourceway.uvp.enums.EventType;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -47,6 +49,22 @@ public class VulnLocalServiceImpl implements VulnLocalService {
                 .toList();
         logger.info("End to query vulns from local databases, get <{}> vulns affecting <{}>.", result.size(), purl);
         return result;
+    }
+
+    @Override
+    public Map<String, Object> queryDetail(String startTime, String endTime) {
+        List<Map> detail = vulnerabilityRepository.queryDetailByTime(startTime, endTime);
+        Long count = vulnerabilityRepository.queryCount(startTime, endTime);
+        Map<String, Object> result = new HashMap<>();
+        result.put("count", count);
+        result.put("detail", detail);
+        return result;
+    }
+
+    @Override
+    public List<Severity> queryScore(List<String> vulnId) {
+        var score = vulnerabilityRepository.queryScore(vulnId);
+        return score;
     }
 
     private List<Vulnerability> queryBySourceAndPurl(VulnSource source, String purl, Boolean accurate,

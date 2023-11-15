@@ -1,5 +1,7 @@
 package org.opensourceway.uvp.controller;
 
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,9 +15,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.opensourceway.uvp.api.Example;
 import org.opensourceway.uvp.api.HttpStatusCode;
 import org.opensourceway.uvp.constant.UvpConstant;
+import org.opensourceway.uvp.entity.Severity;
 import org.opensourceway.uvp.enums.ErrorCode;
 import org.opensourceway.uvp.exception.InvalidPurlException;
 import org.opensourceway.uvp.pojo.osv.OsvVulnerability;
@@ -25,6 +29,7 @@ import org.opensourceway.uvp.pojo.response.PackageVulns;
 import org.opensourceway.uvp.pojo.response.SearchResp;
 import org.opensourceway.uvp.pojo.response.VulnDetailResp;
 import org.opensourceway.uvp.service.UvpService;
+import org.opensourceway.uvp.service.VulnLocalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +45,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-
-import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @Controller
 @RequestMapping(path = "/uvp-api")
@@ -53,6 +57,9 @@ public class UvpController {
 
     @Autowired
     private UvpService uvpService;
+
+    @Autowired
+    private VulnLocalService vulnLocalService;
 
     @Operation(summary = "Query vulnerabilities affecting a given PURL")
     @Parameter(
@@ -334,5 +341,61 @@ public class UvpController {
 
         logger.info("Query details successfully for vulnerability: <{}>", vulnId);
         return ResponseEntity.status(HttpStatus.OK).body(resp);
+    }
+
+    /**
+     * query vulndetail
+     *
+     * @param startTime
+     * @param endTime
+     * @return ResponseEntity
+     */
+    @Operation(summary = "Query vulnerabilities By Time")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "startTime,endTime",
+        content = @Content(mediaType = APPLICATION_JSON_VALUE))
+    @Tag(name = "API")
+    @GetMapping(value = "/queryDetail", produces = APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<?> queryDetail(@RequestBody(required = true) String startTime,
+        @RequestBody(required = true) String endTime) {
+        Map<String, Object> result;
+        try {
+            result = vulnLocalService.queryDetail(startTime, endTime);
+        } catch (InvalidPurlException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new Error(ErrorCode.INVALID_PURL, e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unknown error occurs", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new Error(ErrorCode.UNKNOWN, "Unknown error"));
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    /**
+     * query score
+     *
+     * @param vulnId
+     * @return ResponseEntity
+     */
+    @Operation(summary = "If the match is successful, the data details are returned")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "vulnId",
+        content = @Content(mediaType = APPLICATION_JSON_VALUE))
+    @Tag(name = "API")
+    @PostMapping(value = "/queryScore", produces = APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<?> queryScore(@RequestBody(required = true) List<String> vulnId) {
+        List<Severity> result;
+        try {
+            result = vulnLocalService.queryScore(vulnId);
+        } catch (InvalidPurlException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new Error(ErrorCode.INVALID_PURL, e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unknown error occurs", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new Error(ErrorCode.UNKNOWN, "Unknown error"));
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

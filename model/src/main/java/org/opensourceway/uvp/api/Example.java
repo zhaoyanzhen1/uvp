@@ -9,6 +9,8 @@ public class Example {
             ]
             """;
 
+    public static final String TIME_EXAMPLE = "2023-10-30 00:00:00";
+
     public static final String OSV_VULN_EXAMPLE = """
             [
                 {
